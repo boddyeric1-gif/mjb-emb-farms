@@ -1,0 +1,55 @@
+name: Phase 5.1 QA and Netlify ZIP
+on:
+  push:
+    branches: [phase-5-1-refinement]
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate game and assets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,sys
+          s=Path('index.html').read_text()
+          tests={
+            'Global all-bay harvesting':'for(let b=0;b<G.unlockedBays;b++)bayPlots(b).forEach' in s,
+            'Bay-specific planting':'const plots=bayPlots(),empty=' in s,
+            'Progressive breeding':'Math.pow(1.15' in s,
+            'Breeding tap guard':'if(breedingLocked)return' in s,
+            'Codex filtering':'function filterCodex()' in s,
+            'Bulk hybrid deletion':'function deleteSelectedHybrids()' in s,
+            'Automation storage bonus':'(G.research.automation||0)*6' in s,
+            'Analytics sale bonus':'marketMult(d[0])*analyticsBonus()' in s,
+            'Analytics contract bonus':'c.bonus*facilityBonus()*researchBonus()*analyticsBonus()' in s,
+            'Centered favicon':Path('favicon-centered.svg').exists(),
+            'Game artwork':Path('assets/branding/emb_farms_icon.webp').exists(),
+            'Facility artwork':Path('assets/facilities/facility_06.webp').exists(),
+          }
+          for k,v in tests.items():print(('PASS' if v else 'FAIL')+' '+k)
+          if not all(tests.values()):sys.exit(1)
+          PY
+          node - <<'JS'
+          const fs=require('fs'),s=fs.readFileSync('index.html','utf8');
+          const scripts=[...s.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
+          for(const script of scripts)new Function(script);
+          console.log('PASS JavaScript syntax: '+scripts.length+' scripts');
+          JS
+      - name: Package Netlify site
+        run: |
+          python3 - <<'PY'
+          import zipfile,pathlib
+          root=pathlib.Path('.')
+          with zipfile.ZipFile('MJB-EMB-Farms-Phase-5.1-Netlify.zip','w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+            for p in root.rglob('*'):
+              if p.is_file() and '.git' not in p.parts and '.github' not in p.parts and p.suffix!='.zip':
+                z.write(p,p.as_posix())
+          print('ZIP ready, index.html at root')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MJB-EMB-Farms-Phase-5.1-Netlify
+          path: MJB-EMB-Farms-Phase-5.1-Netlify.zip
+          retention-days: 30
