@@ -42,7 +42,7 @@
 .breakthrough{padding:12px;border-radius:15px;border:1px solid #b96cff88;background:linear-gradient(135deg,#163a2255,#47165d66);margin:10px 0;text-align:center}.breakthrough h3{margin:5px 0;color:#d99aff}
 .genTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.genTabs button{border:0;border-radius:10px;padding:9px;background:#ffffff0c;color:#fff;font-weight:900}.genTabs button.on{background:#245c38}
 </style>
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/svg+xml" href="favicon-centered.svg?v=51">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#07100b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -123,12 +123,13 @@ const save=()=>localStorage.setItem("embFarmsV2",JSON.stringify(G)),level=()=>1+
 function growStep(){return Math.max(3500,9000-G.upgrades.speed*850)}
 function stage(p){return Math.min(5,1+Math.floor(Math.max(0,Date.now()-p.t)/growStep()))}
 function storedUnits(){return Object.values(G.inventory).reduce((a,n)=>a+(Number(n)||0),0)}
-function storageCap(){return 24+G.upgrades.storage*12+Math.max(0,G.facility-1)*4}
+function storageCap(){return 24+G.upgrades.storage*12+Math.max(0,G.facility-1)*4+(G.research.automation||0)*6}
 function mastery(id){return G.mastery[id]||0}
 function masteryLevel(id){return Math.min(10,1+Math.floor(mastery(id)/5))}
 function facilityBonus(){return 1+(G.facility-1)*.03}
 function researchCost(k){let b={genetics:18000,automation:26000,analytics:22000}[k];return Math.round(b*Math.pow(1.7,G.research[k]||0))}
 function researchBonus(){return 1+(G.research.genetics||0)*.025}
+function analyticsBonus(){return 1+(G.research.analytics||0)*.02}
 function buyResearch(k){if(G.facility<6){sfx("error");return say("Reach Facility 6 first")}let c=researchCost(k);if(G.cash<c){sfx("error");return say("Need $"+c.toLocaleString())}let ol=level();G.cash-=c;G.research[k]=(G.research[k]||0)+1;G.xp+=80;save();sfx("research");maybeLevel(ol);openResearch();draw();say("RESEARCH COMPLETE")}
 
 function hash32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -137,11 +138,14 @@ function parentPool(){return data.filter(d=>d[4]<=G.facility)}
 function geneticStats(id){let h=G.genetics.hybrids.find(x=>x.id===id);if(h)return h.stats;let d=data.find(x=>x[0]===id),seed=hash32(id),r=rngFrom(seed);return{growth:Math.round(42+r()*45),yield:Math.round(42+r()*45),quality:Math.round(40+r()*48),market:Math.round(38+r()*50),stability:Math.round(45+r()*45),demand:Math.round(38+r()*50)}}
 function rarityRoll(r,parents){let bonus=(G.research.genetics||0)*.015+(parents.reduce((s,p)=>s+(geneticStats(p).quality||50),0)/200)*.06,x=r()+bonus;return x>.985?5:x>.94?4:x>.82?3:x>.62?2:x>.34?1:0}
 function makeHybridName(a,b,signature){if(signature)return signature.name;let A=data.find(x=>x[0]===a)?.[1]||a,B=data.find(x=>x[0]===b)?.[1]||b;let aw=A.split(" "),bw=B.split(" ");return (aw[0]+" "+bw[bw.length-1]).replace(/X$/,"").trim()}
-function breedCost(){return Math.max(2500,6500-(G.research.genetics||0)*450)}
+function breedCost(){return Math.max(2500,Math.round(6500*Math.pow(1.15,Math.min(45,G.genetics.breedCount||0))-(G.research.genetics||0)*450))}
+let breedingLocked=false;
 function breedSelected(){
+ if(breedingLocked)return;
  if(G.facility<6){sfx("error");return say("Facility 6 required")}
  let a=document.getElementById("parentA")?.value,b=document.getElementById("parentB")?.value;if(!a||!b||a===b){sfx("error");return say("Choose two different parents")}
  let cost=breedCost();if(G.cash<cost){sfx("error");return say("Need $"+cost.toLocaleString())}
+ breedingLocked=true;
  G.cash-=cost;G.genetics.breedCount++;let attempt=G.genetics.breedCount,key=sigKey(a,b),sig=SIGNATURES[key],seed=hash32(key+"|"+attempt+"|"+(G.research.genetics||0)),r=rngFrom(seed);
  let sa=geneticStats(a),sb=geneticStats(b),stats={};["growth","yield","quality","market","stability","demand"].forEach(k=>stats[k]=Math.max(20,Math.min(99,Math.round((sa[k]+sb[k])/2+(r()-.5)*18+(G.research.genetics||0)*1.2))));
  let ri=rarityRoll(r,[a,b]),mutation=r()<(0.055+(G.research.genetics||0)*.008)?["Rapid Cycle","Heavy Yield","Prismatic Quality","Market Magnet","Stable Genome","Demand Surge"][Math.floor(r()*6)]:null;
@@ -158,7 +162,7 @@ function breedSelected(){
  }else{G.genetics.hybrids.push(h);data.push(hybridData(h));G.genetics.discoveries[id]=true;sfx(sig?"achievement":"unlock")}
  G.genetics.history.unshift({at:Date.now(),parents:[a,b],offspring:id,rarity:h.rarity,mutation:h.mutation,improved:!existing||retained===h||retained.stats===h.stats});
  G.genetics.history=G.genetics.history.slice(0,100);
- G.xp+=120+ri*25;checkGeneticsMilestones();save();draw();showBreedResult(retained,!existing);sfx("research")
+ G.xp+=120+ri*25;checkGeneticsMilestones();save();draw();showBreedResult(retained,!existing);sfx("research");breedingLocked=false
 }
 // Evolution v0.9: permanent discovery milestones and genealogy ledger.
 const GENETICS_MILESTONES=[
@@ -201,7 +205,7 @@ function openGenetics(tab="breed"){
  let pool=parentPool(),opts=pool.map(d=>`<option value="${d[0]}">${d[1]}</option>`).join("");
  sheet.innerHTML=`<div class=genHero><div class=genHeroText><b>GENETICS LAB</b><br><small>Cross strains • discover signatures • build bloodlines</small></div></div><div class=genTabs><button class="${tab==="breed"?"on":""}" onclick="openGenetics('breed')">BREED</button><button class="${tab==="codex"?"on":""}" onclick="openGenetics('codex')">CODEX ${G.genetics.hybrids.length}</button><button class="${tab==="progress"?"on":""}" onclick="openGenetics('progress')">PROGRESS</button></div>`;
  if(tab==="breed"){
-  sheet.innerHTML+=`<div class=genMachineGrid><div class="machine a"><img class=machineArt src="assets/genetics/parent_a.webp"><img id=parentAPlant class=machinePlant><select id=parentA onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT A</div></div><div class="machine center"><img class=machineArt src="assets/genetics/hybridizer.webp"><div class=machineTitle>HYBRIDIZATION</div><button class=hybBtn onclick="breedSelected()">CROSS • $${breedCost().toLocaleString()}</button></div><div class="machine b"><img class=machineArt src="assets/genetics/parent_b.webp"><img id=parentBPlant class=machinePlant><select id=parentB onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT B</div></div></div><div id=parentPreview></div><p class=mini>Genetics Research lowers cost and improves rare outcomes. Six signature breakthroughs are hidden among the bloodlines.</p><div class=genSupport><img src="assets/genetics/codex.webp"><img src="assets/genetics/mutation.webp"><img src="assets/genetics/lineage.webp"></div>`;
+  sheet.innerHTML+=`<div class=genMachineGrid><div class="machine a"><img class=machineArt src="assets/genetics/parent_a.webp"><img id=parentAPlant class=machinePlant><select id=parentA onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT A</div></div><div class="machine center"><img class=machineArt src="assets/genetics/hybridizer.webp"><div class=machineTitle>HYBRIDIZATION</div><button class=hybBtn onclick="breedSelected()">CROSS • $${breedCost().toLocaleString()}</button></div><div class="machine b"><img class=machineArt src="assets/genetics/parent_b.webp"><img id=parentBPlant class=machinePlant><select id=parentB onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT B</div></div></div><div id=parentPreview></div><p class=mini>Genetics Research lowers cost and improves rare outcomes; each cross increases future breeding costs. Six signature breakthroughs are hidden among the bloodlines.</p><div class=genSupport><img src="assets/genetics/codex.webp"><img src="assets/genetics/mutation.webp"><img src="assets/genetics/lineage.webp"></div>`;
   let pb=document.getElementById("parentB");if(pb&&pb.options.length>1)pb.selectedIndex=1;updateParentPreview();
  }else if(tab==="progress"){
   const signatures=Object.values(SIGNATURES);
@@ -212,16 +216,46 @@ function openGenetics(tab="breed"){
  }else{
   sheet.innerHTML+=`<button class="bigbtn" onclick="openGeneticsHistory()">BREEDING JOURNAL (${G.genetics.history.length})</button>`;
   if(!G.genetics.hybrids.length)sheet.innerHTML+=`<p>No hybrids discovered yet. Your Codex will record offspring, rarity, mutations and lineage.</p>`;
-  G.genetics.hybrids.forEach(h=>{let vis=h.visualId||h.id;sheet.innerHTML+=`<div class=hybridCard><img src="assets/plants/${vis}/${vis}_05_harvest.webp"><div><b>${h.name}</b><br><span class="rarity ${h.rarity}">${h.rarity} • Gen ${h.generation}${h.signature?` <span class=signatureTag>SIGNATURE</span>`:""}</span><br><small>${parentName(h.parents[0])} × ${parentName(h.parents[1])}${h.mutation?" • "+h.mutation:""}</small></div><button onclick="showHybrid('${h.id}')">VIEW</button></div>`})
+  sheet.innerHTML+=`<div style="display:grid;gap:7px;margin:12px 0"><input id="codexSearch" placeholder="Search hybrids..." oninput="filterCodex()" style="width:100%;padding:11px;background:#101b16;color:white;border:1px solid #68ff9655;border-radius:10px"><div style="display:flex;gap:6px"><select id="codexFilter" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="all">All hybrids</option><option value="originals">Original strains</option><option value="custom">Custom hybrids</option>${RARITIES.map(r=>`<option>${r}</option>`).join("")}<option value="favorites">Favorites</option></select><select id="codexSort" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="newest">Newest</option><option value="name">Name A-Z</option><option value="value">Highest value</option><option value="rarity">Highest rarity</option></select></div></div><div style="display:flex;gap:6px;margin:8px 0"><button class="bigbtn" onclick="selectVisibleHybrids()">SELECT VISIBLE</button><button class="bigbtn" onclick="deleteSelectedHybrids()">DELETE SELECTED</button></div><div id="codexResults"></div>`;
+  filterCodex();
  }
  modal.classList.add("on")
+}
+function filterCodex(){
+ const el=document.getElementById("codexResults");if(!el)return;
+ const query=(document.getElementById("codexSearch")?.value||"").toLowerCase(),filter=document.getElementById("codexFilter")?.value||"all",sort=document.getElementById("codexSort")?.value||"newest";
+ const list=(filter==="originals"?data.filter(d=>!d[0].startsWith("hyb_")&&!G.genetics.hybrids.some(h=>h.id===d[0])).map(d=>({id:d[0],name:d[1],rarity:"Original",original:true,value:d[3],visualId:d[5]||d[0]})):G.genetics.hybrids).filter(h=>h.name.toLowerCase().includes(query)&&(filter==="all"||filter==="originals"||filter==="custom"&&!h.original||filter==="favorites"&&h.favorite||h.rarity===filter)).slice();
+ list.sort((a,b)=>sort==="name"?a.name.localeCompare(b.name):sort==="value"?(b.value||0)-(a.value||0):sort==="rarity"?(b.rarityIndex||0)-(a.rarityIndex||0):(b.created||0)-(a.created||0));
+ el.innerHTML=list.map(h=>{const vis=h.visualId||h.id,id=JSON.stringify(h.id);return `<div class="hybridCard"><img src="assets/plants/${escapeFarmText(vis)}/${escapeFarmText(vis)}_05_harvest.webp"><div><b>${escapeFarmText(h.name)}</b><br><small>${escapeFarmText(h.rarity)} • Gen ${h.generation||1} • ${(h.value||0).toLocaleString()}</small></div><div style="display:flex;flex-direction:column;gap:4px">${h.original?"":`<input type="checkbox" class="hybridSelect" value="${escapeFarmText(h.id)}"><button onclick='toggleHybridFavorite(${id})'>${h.favorite?"★":"☆"}</button><button onclick='showHybrid(${id})'>VIEW</button><button style="background:#633" onclick='deleteHybrid(${id})'>DELETE</button>`}</div></div>`}).join("")||"<p>No matching strains.</p>";
+}
+function selectVisibleHybrids(){document.querySelectorAll(".hybridSelect").forEach(el=>el.checked=true)}
+function hybridCanDelete(id){return ![G.plots,...G.bays].some(plots=>plots.some(p=>p&&p.id===id))&&!G.genetics.hybrids.some(x=>x.id!==id&&x.parents&&x.parents.includes(id))&&!(G.inventory[id]>0)&&!(G.contract&&G.contract.id===id)}
+function deleteSelectedHybrids(){
+ const ids=[...document.querySelectorAll(".hybridSelect:checked")].map(el=>el.value);
+ if(!ids.length)return say("Select hybrids first");
+ const blocked=ids.filter(id=>!hybridCanDelete(id));if(blocked.length)return say(blocked.length+" strains still in use");
+ if(!confirm("Permanently remove "+ids.length+" selected hybrids? Discovery history is retained."))return;
+ const chosen=new Set(ids);G.genetics.hybrids=G.genetics.hybrids.filter(h=>!chosen.has(h.id));
+ for(let i=data.length-1;i>=0;i--)if(chosen.has(data[i][0]))data.splice(i,1);
+ save();openGenetics("codex");say("Removed "+ids.length+" hybrids");
+}
+function toggleHybridFavorite(id){const h=G.genetics.hybrids.find(x=>x.id===id);if(!h)return;h.favorite=!h.favorite;save();filterCodex()}
+function deleteHybrid(id){
+ const h=G.genetics.hybrids.find(x=>x.id===id);if(!h)return;
+ const planted=[G.plots,...G.bays].some(plots=>plots.some(p=>p&&p.id===id));
+ const dependent=G.genetics.hybrids.some(x=>x.id!==id&&x.parents&&x.parents.includes(id));
+ if(planted||dependent||(G.inventory[id]||0)>0||(G.contract&&G.contract.id===id))return say("Strain in use • clear crops, stock or descendants first");
+ if(!confirm("Delete "+h.name+" from your active hybrid collection? Discovery history will remain."))return;
+ G.genetics.hybrids=G.genetics.hybrids.filter(x=>x.id!==id);
+ const idx=data.findIndex(x=>x[0]===id);if(idx>=0)data.splice(idx,1);
+ save();openGenetics("codex");say("Hybrid removed");
 }
 function showHybrid(id){let h=G.genetics.hybrids.find(x=>x.id===id);if(!h)return;showBreedResult(h,false)}
 
 function openResearch(){sfx("click");if(G.facility>=6)playMusic("research");let lock=G.facility<6;sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/research.webp">Research Division</h2><p class="mini">${lock?"Reach Facility 6 to open the endgame research division.":"Facility 6 is the beginning of the empire layer. Research now creates permanent operation bonuses."}</p>
 <div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/genetics.webp"><div><b>Genetics Research Lv.${G.research.genetics||0}</b><br><small>+2.5% premium-value potential / level</small></div><button ${lock?"disabled":""} onclick="buyResearch('genetics')">$${researchCost("genetics").toLocaleString()}</button></div><div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/genetics.webp"><div><b>Genetics Lab</b><br><small>Breed, discover and plant persistent hybrid bloodlines</small></div><button ${lock?"disabled":""} onclick="openGenetics()">ENTER</button></div>
-<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/automation.webp"><div><b>Automation Engineering Lv.${G.research.automation||0}</b><br><small>Foundation for automated harvest/production systems</small></div><button ${lock?"disabled":""} onclick="buyResearch('automation')">$${researchCost("automation").toLocaleString()}</button></div>
-<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/market.webp"><div><b>Market Analytics Lv.${G.research.analytics||0}</b><br><small>Foundation for forecasting and advanced market tools</small></div><button ${lock?"disabled":""} onclick="buyResearch('analytics')">$${researchCost("analytics").toLocaleString()}</button></div>`;modal.classList.add("on")}
+<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/automation.webp"><div><b>Automation Engineering Lv.${G.research.automation||0}</b><br><small>+6 storage capacity per level for large harvest operations</small></div><button ${lock?"disabled":""} onclick="buyResearch('automation')">$${researchCost("automation").toLocaleString()}</button></div>
+<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/market.webp"><div><b>Market Analytics Lv.${G.research.analytics||0}</b><br><small>+2% market sale prices per level</small></div><button ${lock?"disabled":""} onclick="buyResearch('analytics')">$${researchCost("analytics").toLocaleString()}</button></div>`;modal.classList.add("on")}
 function qualityRoll(id){let r=Math.random()+masteryLevel(id)*.012+G.facility*.008;return r>.985?4:r>.91?3:r>.72?2:r>.42?1:0}
 const qualities=["Standard","Fine","Premium","Exotic","Perfect"],qMult=[1,1.08,1.18,1.35,1.65];
 function marketSeconds(){return 30-Math.floor((Date.now()%30000)/1000)}
@@ -260,12 +294,12 @@ function plantAll(d){
  G.cash-=count*d[2];save();sfx("plant");modal.classList.remove("on");draw();say("Planted "+count+" × "+d[1]);
 }
 function harvestAll(){
- if(activeBay>=G.unlockedBays)return openBayManager();
- const plots=bayPlots(),ready=plots.map((p,i)=>p&&stage(p)===5?i:-1).filter(i=>i>=0);
- if(!ready.length)return say("No plants ready in this bay");
+ const ready=[];
+ for(let b=0;b<G.unlockedBays;b++)bayPlots(b).forEach((p,i)=>{if(p&&stage(p)===5)ready.push([b,i])});
+ if(!ready.length)return say("No plants ready across unlocked bays");
  const old=level();let harvested=0,perfect=0;
- for(const i of ready){
-  const p=plots[i],d=data.find(x=>x[0]===p.id);
+ for(const [b,i] of ready){
+  const plots=bayPlots(b),p=plots[i],d=data.find(x=>x[0]===p.id);
   if(!d)continue;
   const qty=1+G.upgrades.yield;
   if(storedUnits()+qty>storageCap())break;
@@ -286,7 +320,7 @@ function showStats(){sheet.innerHTML=`<h2><img loading="lazy" decoding="async" c
 function marketMult(id){let bucket=Math.floor(Date.now()/30000),n=[...id].reduce((a,c)=>a+c.charCodeAt(0),0);return .72+(((n*9301+bucket*49297)%1000)/1000)*.68}
 function demand(){let bucket=Math.floor(Date.now()/180000),i=(bucket*7)%data.length;return data[i]}
 function openStorage(){sfx("click");sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/storage.webp">Storage</h2><p><small>Capacity: ${storedUnits()} / ${storageCap()} units</small></p>`;let any=false;data.forEach(d=>{let q=G.inventory[d[0]]||0;if(q){any=true;let r=document.createElement("div");r.className="invrow";r.innerHTML=`<div><b>${d[1]}</b><br><small>${q} units stored</small></div><button>MARKET</button>`;r.querySelector("button").onclick=openMarket;sheet.appendChild(r)}});if(!any)sheet.innerHTML+="<p>Your shelves are empty. Harvest crops to stock them.</p>";modal.classList.add("on")}
-function openMarket(){sfx("click");ensureContract();let boom=demand();sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/market.webp">Live Market</h2><div class="event"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/market.webp"> HIGH DEMAND: <b>${boom[1]}</b> pays +40% this cycle.<br><small>Prices refresh in ${marketSeconds()}s</small></div>`;sheet.innerHTML+=contractHtml();data.forEach(d=>{let q=G.inventory[d[0]]||0,m=marketMult(d[0]),isBoom=d[0]===boom[0],effective=m*(isBoom?1.4:1),price=Math.round(d[3]*effective),pct=Math.round((effective-1)*100),r=document.createElement("div");r.className="marketrow";r.innerHTML=`<div><b>${d[1]}</b><br><span class="${pct>=0?"priceup":"pricedown"}">$${price}/unit ${pct>=0?"▲":"▼"} ${Math.abs(pct)}%</span><br><small>Owned: ${q}${q?` • Quality ×${qualityValue(d[0]).toFixed(2)}`:""}${isBoom?" • 🔥 demand bonus included":""}</small></div><button ${q?"":"disabled"}>SELL ALL</button>`;r.querySelector("button").onclick=()=>{if(!q)return;let ol=level(),qm=qualityValue(d[0]),total=Math.round(price*q*qm*facilityBonus()*researchBonus());G.cash+=total;G.lifetimeRevenue+=total;G.bestSale=Math.max(G.bestSale,total);G.inventory[d[0]]=0;G.quality[d[0]]=[0,0,0,0,0];G.xp+=q*3;checkAchievements();save();sfx("sell");maybeLevel(ol);openMarket();draw();say(`SOLD • +$${total.toLocaleString()}`)};sheet.appendChild(r)});modal.classList.add("on")}
+function openMarket(){sfx("click");ensureContract();let boom=demand();sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/market.webp">Live Market</h2><div class="event"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/market.webp"> HIGH DEMAND: <b>${boom[1]}</b> pays +40% this cycle.<br><small>Prices refresh in ${marketSeconds()}s</small></div>`;sheet.innerHTML+=contractHtml();data.forEach(d=>{let q=G.inventory[d[0]]||0,m=marketMult(d[0])*analyticsBonus(),isBoom=d[0]===boom[0],effective=m*(isBoom?1.4:1),price=Math.round(d[3]*effective),pct=Math.round((effective-1)*100),r=document.createElement("div");r.className="marketrow";r.innerHTML=`<div><b>${d[1]}</b><br><span class="${pct>=0?"priceup":"pricedown"}">$${price}/unit ${pct>=0?"▲":"▼"} ${Math.abs(pct)}%</span><br><small>Owned: ${q}${q?` • Quality ×${qualityValue(d[0]).toFixed(2)}`:""}${isBoom?" • 🔥 demand bonus included":""}</small></div><button ${q?"":"disabled"}>SELL ALL</button>`;r.querySelector("button").onclick=()=>{if(!q)return;let ol=level(),qm=qualityValue(d[0]),total=Math.round(price*q*qm*facilityBonus()*researchBonus());G.cash+=total;G.lifetimeRevenue+=total;G.bestSale=Math.max(G.bestSale,total);G.inventory[d[0]]=0;G.quality[d[0]]=[0,0,0,0,0];G.xp+=q*3;checkAchievements();save();sfx("sell");maybeLevel(ol);openMarket();draw();say(`SOLD • +$${total.toLocaleString()}`)};sheet.appendChild(r)});modal.classList.add("on")}
 function openStrains(){sfx("click");sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/genetics.webp">Strain Lab</h2><p class=mini>Harvest strains to build Mastery. Higher mastery improves quality odds.</p>${G.facility>=6?`<button class=bigbtn style="width:100%;margin-bottom:10px" onclick="openGenetics()">OPEN GENETICS LAB</button>`:""}`;data.forEach(d=>{let unlocked=G.facility>=d[4],r=document.createElement("div");r.className="seed "+(unlocked?"":"lock");r.innerHTML=`<img class="thumb" src="assets/plants/${d[5]||d[0]}/${d[5]||d[0]}_05_harvest.webp"><div><b>${d[1]}</b><br><small>${unlocked?"UNLOCKED":"Requires Facility "+d[4]} • Base value $${d[3]} • Mastery Lv.${masteryLevel(d[0])}</small><div class="progress"><i style="width:${Math.min(100,(mastery(d[0])%5)*20)}%"></i></div></div><b>${unlocked?"✓":"LOCKED"}</b>`;sheet.appendChild(r)});modal.classList.add("on")}
 function upCost(k){let base={speed:350,yield:600,storage:250}[k];return Math.round(base*Math.pow(1.62,G.upgrades[k]))}
 function buyUp(k){let c=upCost(k);if(G.cash<c){sfx("error");return say("Need $"+c.toLocaleString())}let ol=level();G.cash-=c;G.upgrades[k]++;G.xp+=35;checkAchievements();save();sfx("upgrade");maybeLevel(ol);openUpgrades();draw();say("UPGRADE INSTALLED")}
@@ -298,7 +332,7 @@ function openUpgrades(){sfx("click");let fc=G.facility<6?[0,700,1700,4200,9500,2
 <div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/research.webp"><div><b>Research Division</b><br><small>${G.facility>=6?"Endgame genetics, automation & analytics":"Unlocks at Facility 6"}</small></div></div><button ${G.facility<6?"disabled":""} onclick="openResearch()">OPEN</button></div>`;modal.classList.add("on")}
 function qualityValue(id){let a=G.quality[id]||[],q=G.inventory[id]||0;if(!q)return 1;let tracked=a.reduce((x,n)=>x+(n||0),0),weighted=a.reduce((sum,n,i)=>sum+(n||0)*qMult[i],0);return ((q-tracked)+weighted)/q}
 function ensureContract(){let bucket=Math.floor(Date.now()/240000);if(G.contract&&G.contract.bucket===bucket)return;let unlocked=data.filter(d=>G.facility>=d[4]),d=unlocked[(bucket*11)%unlocked.length],qty=2+((bucket*3)%5),bonus=1.55;G.contract={bucket,id:d[0],qty,bonus}}
-function contractHtml(){ensureContract();let c=G.contract,d=data.find(x=>x[0]===c.id),owned=G.inventory[c.id]||0,pay=Math.round(d[3]*c.qty*c.bonus*facilityBonus()*researchBonus());return `<div class="contract"><b><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/contracts.webp"> CONTRACT</b><br>${c.qty}× ${d[1]} • Reward $${pay.toLocaleString()}<br><small>Owned ${owned}/${c.qty}</small> <button class="bigbtn" ${owned<c.qty?"disabled":""} onclick="fillContract()">FULFILL</button></div>`}
+function contractHtml(){ensureContract();let c=G.contract,d=data.find(x=>x[0]===c.id),owned=G.inventory[c.id]||0,pay=Math.round(d[3]*c.qty*c.bonus*facilityBonus()*researchBonus()*analyticsBonus());return `<div class="contract"><b><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/contracts.webp"> CONTRACT</b><br>${c.qty}× ${d[1]} • Reward $${pay.toLocaleString()}<br><small>Owned ${owned}/${c.qty}</small> <button class="bigbtn" ${owned<c.qty?"disabled":""} onclick="fillContract()">FULFILL</button></div>`}
 function fillContract(){let ol=level(),c=G.contract,d=data.find(x=>x[0]===c.id),owned=G.inventory[c.id]||0;if(owned<c.qty){sfx("error");return}let pay=Math.round(d[3]*c.qty*c.bonus*facilityBonus()*researchBonus());G.inventory[c.id]-=c.qty;let qa=G.quality[c.id]||[0,0,0,0,0],left=c.qty;for(let i=0;i<qa.length&&left;i++){let take=Math.min(qa[i]||0,left);qa[i]-=take;left-=take}G.cash+=pay;G.lifetimeRevenue+=pay;G.bestSale=Math.max(G.bestSale,pay);G.xp+=25;G.contract=null;checkAchievements();save();sfx("contract");maybeLevel(ol);openMarket();draw();say(`CONTRACT • +$${pay.toLocaleString()}`)}
 const achDefs=[["first","First Harvest",()=>G.harvests>=1,100],["hundred","Green Thumb",()=>G.harvests>=100,1500],["fac6","Quantum Farmer",()=>G.facility>=6,5000],["rev50","$50K Operation",()=>G.lifetimeRevenue>=50000,2500],["perfect","Perfect Specimen",()=>G.perfects>=1,1000],["genetic","Geneticist",()=>G.genetics.hybrids.length>=1,2500],["sixsig","Breakthrough Collector",()=>Object.keys(G.genetics.discoveries).filter(x=>SIGNATURES && Object.values(SIGNATURES).some(s=>s.id===x)).length>=6,15000]];
 function checkAchievements(){for(let [id,n,test,reward] of achDefs)if(!G.achievements[id]&&test()){G.achievements[id]=true;G.cash+=reward;sfx("achievement");setTimeout(()=>say(`${n} • +$${reward.toLocaleString()}`),300)}}
