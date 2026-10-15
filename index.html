@@ -216,7 +216,7 @@ function openGenetics(tab="breed"){
  }else{
   sheet.innerHTML+=`<button class="bigbtn" onclick="openGeneticsHistory()">BREEDING JOURNAL (${G.genetics.history.length})</button>`;
   if(!G.genetics.hybrids.length)sheet.innerHTML+=`<p>No hybrids discovered yet. Your Codex will record offspring, rarity, mutations and lineage.</p>`;
-  sheet.innerHTML+=`<div style="display:grid;gap:7px;margin:12px 0"><input id="codexSearch" placeholder="Search hybrids..." oninput="filterCodex()" style="width:100%;padding:11px;background:#101b16;color:white;border:1px solid #68ff9655;border-radius:10px"><div style="display:flex;gap:6px"><select id="codexFilter" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="all">All rarities</option>${RARITIES.map(r=>`<option>${r}</option>`).join("")}<option value="favorites">Favorites</option></select><select id="codexSort" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="newest">Newest</option><option value="name">Name A-Z</option><option value="value">Highest value</option><option value="rarity">Highest rarity</option></select></div></div><div id="codexResults"></div>`;
+  sheet.innerHTML+=`<div style="display:grid;gap:7px;margin:12px 0"><input id="codexSearch" placeholder="Search hybrids..." oninput="filterCodex()" style="width:100%;padding:11px;background:#101b16;color:white;border:1px solid #68ff9655;border-radius:10px"><div style="display:flex;gap:6px"><select id="codexFilter" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="all">All hybrids</option><option value="originals">Original strains</option><option value="custom">Custom hybrids</option>${RARITIES.map(r=>`<option>${r}</option>`).join("")}<option value="favorites">Favorites</option></select><select id="codexSort" onchange="filterCodex()" style="flex:1;background:#101b16;color:white;padding:9px"><option value="newest">Newest</option><option value="name">Name A-Z</option><option value="value">Highest value</option><option value="rarity">Highest rarity</option></select></div></div><div style="display:flex;gap:6px;margin:8px 0"><button class="bigbtn" onclick="selectVisibleHybrids()">SELECT VISIBLE</button><button class="bigbtn" onclick="deleteSelectedHybrids()">DELETE SELECTED</button></div><div id="codexResults"></div>`;
   filterCodex();
  }
  modal.classList.add("on")
@@ -224,9 +224,20 @@ function openGenetics(tab="breed"){
 function filterCodex(){
  const el=document.getElementById("codexResults");if(!el)return;
  const query=(document.getElementById("codexSearch")?.value||"").toLowerCase(),filter=document.getElementById("codexFilter")?.value||"all",sort=document.getElementById("codexSort")?.value||"newest";
- const list=G.genetics.hybrids.filter(h=>h.name.toLowerCase().includes(query)&&(filter==="all"||filter==="favorites"&&h.favorite||h.rarity===filter)).slice();
+ const list=(filter==="originals"?data.filter(d=>!d[0].startsWith("hyb_")&&!G.genetics.hybrids.some(h=>h.id===d[0])).map(d=>({id:d[0],name:d[1],rarity:"Original",original:true,value:d[3],visualId:d[5]||d[0]})):G.genetics.hybrids).filter(h=>h.name.toLowerCase().includes(query)&&(filter==="all"||filter==="originals"||filter==="custom"&&!h.original||filter==="favorites"&&h.favorite||h.rarity===filter)).slice();
  list.sort((a,b)=>sort==="name"?a.name.localeCompare(b.name):sort==="value"?(b.value||0)-(a.value||0):sort==="rarity"?(b.rarityIndex||0)-(a.rarityIndex||0):(b.created||0)-(a.created||0));
- el.innerHTML=list.map(h=>{const vis=h.visualId||h.id,id=JSON.stringify(h.id);return `<div class="hybridCard"><img src="assets/plants/${escapeFarmText(vis)}/${escapeFarmText(vis)}_05_harvest.webp"><div><b>${escapeFarmText(h.name)}</b><br><small>${escapeFarmText(h.rarity)} • Gen ${h.generation||1} • ${(h.value||0).toLocaleString()}</small></div><div style="display:flex;flex-direction:column;gap:4px"><button onclick='toggleHybridFavorite(${id})'>${h.favorite?"★":"☆"}</button><button onclick='showHybrid(${id})'>VIEW</button><button style="background:#633" onclick='deleteHybrid(${id})'>DELETE</button></div></div>`}).join("")||"<p>No matching strains.</p>";
+ el.innerHTML=list.map(h=>{const vis=h.visualId||h.id,id=JSON.stringify(h.id);return `<div class="hybridCard"><img src="assets/plants/${escapeFarmText(vis)}/${escapeFarmText(vis)}_05_harvest.webp"><div><b>${escapeFarmText(h.name)}</b><br><small>${escapeFarmText(h.rarity)} • Gen ${h.generation||1} • ${(h.value||0).toLocaleString()}</small></div><div style="display:flex;flex-direction:column;gap:4px">${h.original?"":`<input type="checkbox" class="hybridSelect" value="${escapeFarmText(h.id)}"><button onclick='toggleHybridFavorite(${id})'>${h.favorite?"★":"☆"}</button><button onclick='showHybrid(${id})'>VIEW</button><button style="background:#633" onclick='deleteHybrid(${id})'>DELETE</button>`}</div></div>`}).join("")||"<p>No matching strains.</p>";
+}
+function selectVisibleHybrids(){document.querySelectorAll(".hybridSelect").forEach(el=>el.checked=true)}
+function hybridCanDelete(id){return ![G.plots,...G.bays].some(plots=>plots.some(p=>p&&p.id===id))&&!G.genetics.hybrids.some(x=>x.id!==id&&x.parents&&x.parents.includes(id))&&!(G.inventory[id]>0)&&!(G.contract&&G.contract.id===id)}
+function deleteSelectedHybrids(){
+ const ids=[...document.querySelectorAll(".hybridSelect:checked")].map(el=>el.value);
+ if(!ids.length)return say("Select hybrids first");
+ const blocked=ids.filter(id=>!hybridCanDelete(id));if(blocked.length)return say(blocked.length+" strains still in use");
+ if(!confirm("Permanently remove "+ids.length+" selected hybrids? Discovery history is retained."))return;
+ const chosen=new Set(ids);G.genetics.hybrids=G.genetics.hybrids.filter(h=>!chosen.has(h.id));
+ for(let i=data.length-1;i>=0;i--)if(chosen.has(data[i][0]))data.splice(i,1);
+ save();openGenetics("codex");say("Removed "+ids.length+" hybrids");
 }
 function toggleHybridFavorite(id){const h=G.genetics.hybrids.find(x=>x.id===id);if(!h)return;h.favorite=!h.favorite;save();filterCodex()}
 function deleteHybrid(id){
