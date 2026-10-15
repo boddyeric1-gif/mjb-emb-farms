@@ -1,0 +1,1 @@
+NOVA UI asset sheet extracted into 19 standardized 512x512 transparent PNG icons.\nSource: user-provided NOVA sheet.\n

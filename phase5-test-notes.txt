@@ -1,0 +1,20 @@
+EMB-FARMS v0.9 — PHASE 5 QA CANDIDATE
+
+This build includes phases 1–4, plus Phase 5 fixes:
+- Clamped music crossfade volume to avoid browser RangeError.
+- Strengthened imported save validation, including grow bays and genetics.
+- Preserves previous save as embFarmsPreviousSave before importing a replacement.
+- Versioned browser title.
+
+Automated Chromium integration tests: 7/7 passed.
+Tested: fresh start, legacy save migration, bay isolation, bulk actions,
+storage capacity, bay persistence, genetics journal, save transfer UI.
+JavaScript syntax check: passed.
+
+Remaining: real-phone visual, touch-swipe, audio, save export/import and
+hybrid art tests. No Netlify deployment has been performed.
+
+IMPORTANT: To migrate to a DIFFERENT Netlify URL, export the save from the
+OLD URL before switching, then import the JSON on the NEW URL.
+
+This is a QA candidate, not final production sign-off.

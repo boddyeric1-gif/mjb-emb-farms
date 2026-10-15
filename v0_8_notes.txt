@@ -1,0 +1,10 @@
+EMB Farms v0.8 — Genetics Lab
+- Built on v0.7.2 performance/audio build.
+- Six NOVA signature hybrids, 5 growth stages each (30 optimized WebP sprites).
+- Genetics Lab at Facility 6 with Parent A/B breeding.
+- Persistent hybrids, inherited six-stat phenotype, rarity, mutations, lineage generation.
+- Ordinary hybrids remain plantable using inherited visual phenotype.
+- Signature crosses unlock bespoke plant artwork.
+- Codex stores discovered bloodlines.
+- Genetics Research improves breeding economics/outcomes.
+- Existing embFarmsV2 saves migrate in place.

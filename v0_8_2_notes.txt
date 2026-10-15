@@ -1,0 +1,6 @@
+EMB Farms v0.8.2 — Branding + Loader Hotfix
+• Fixes startup loader deadlock with per-asset timeout, Promise.allSettled and 5s hard fail-open.
+• Adds 6.5s independent emergency loader release if another script fails.
+• Integrates approved EMB Farms branding direction into loading screen.
+• Adds app icon, favicon, Apple touch icon and web manifest.
+• Preserves v0.8.1 Genetics fixes, audio, performance optimization and embFarmsV2 saves.

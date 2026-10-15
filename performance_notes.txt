@@ -1,0 +1,2 @@
+EMB Farms v0.7.2 Performance Hotfix
+WebP visual assets, critical preload gate, idle cache warming, and Netlify immutable asset caching.

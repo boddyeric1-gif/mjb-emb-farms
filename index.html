@@ -1,0 +1,389 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>EMB Farms v0.9</title>
+<style>*{box-sizing:border-box}html,body{margin:0;height:100%;background:#050608;color:#fff;font-family:Inter,system-ui,Arial;overflow:hidden}body{display:grid;place-items:center}.game{position:relative;height:100dvh;aspect-ratio:9/16;max-width:100vw;overflow:hidden;background:#090b0e;box-shadow:0 0 80px #000}.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.vignette{position:absolute;inset:0;background:linear-gradient(#000b,transparent 17%,transparent 76%,#000d);pointer-events:none}.hud{position:absolute;z-index:20;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;gap:7px}.chip{padding:8px 10px;border-radius:16px;background:#0b1018df;border:1px solid #ffffff20;backdrop-filter:blur(12px);font-size:13px;font-weight:900;box-shadow:0 4px 16px #0007}.cash{color:#66ff9a}.lvl{color:#dba8ff}.spacer{flex:1}.plant{position:absolute;z-index:6;transform:translate(-50%,-90%);height:auto;object-fit:contain;filter:drop-shadow(0 9px 7px #0009);pointer-events:none;transform-origin:50% 90%;animation:sway 4s ease-in-out infinite alternate}@keyframes sway{from{rotate:-.3deg}to{rotate:.3deg}}.hit{position:absolute;z-index:8;transform:translate(-50%,-50%);width:34%;height:14%;border:0;border-radius:50%;background:transparent}.hit:active{background:#75ff9b12}.status{position:absolute;z-index:9;transform:translate(-50%,-50%);font-size:9px;font-weight:950;padding:4px 7px;border-radius:10px;background:#070a0dcc;border:1px solid #ffffff1d;box-shadow:0 3px 10px #0008;white-space:nowrap;pointer-events:none}.ready{color:#74ff99;border-color:#74ff9960}.nav{position:absolute;z-index:30;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.nav button{border:1px solid #ffffff22;background:#0d1219e8;color:#fff;border-radius:16px;padding:11px 5px;font-weight:900;backdrop-filter:blur(15px)}.nav .primary{background:#123c22ed;border-color:#58ff8570}.modal{display:none;position:absolute;z-index:60;inset:0;background:#000a;align-items:flex-end}.modal.on{display:flex}.sheet{width:100%;max-height:78%;overflow:auto;padding:18px 14px 28px;background:#0c1118f7;border-radius:24px 24px 0 0;border-top:1px solid #ffffff26;backdrop-filter:blur(22px)}h2{margin:0 0 12px}.close{float:right;width:34px;height:34px;border:0;border-radius:50%;background:#ffffff12;color:white;font-size:20px}.seed{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #ffffff12}.thumb{width:46px;height:58px;object-fit:contain}.seed small{opacity:.65}.seed button{border:0;border-radius:12px;background:#1d512e;color:white;padding:9px 10px;font-weight:900}.seed.lock{opacity:.38}.toast{position:absolute;z-index:100;top:58px;left:50%;transform:translateX(-50%) translateY(-8px);opacity:0;background:#090d13ef;border:1px solid #ffffff25;padding:9px 13px;border-radius:14px;font-size:12px;font-weight:900;transition:.2s;white-space:nowrap}.toast.on{opacity:1;transform:translateX(-50%)}.flash{position:absolute;z-index:55;inset:0;background:white;opacity:0;pointer-events:none}.flash.go{animation:flash .55s}@keyframes flash{30%{opacity:.18}100%{opacity:0}}@media(min-width:800px){.game{height:min(100dvh,960px);border-radius:18px}}
+.nav{grid-template-columns:repeat(5,1fr)!important}.nav button{font-size:10px;padding:10px 2px!important}
+.marketrow,.invrow,.uprow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px solid #ffffff12}
+.marketrow button,.invrow button,.uprow button,.bigbtn{border:0;border-radius:12px;background:#1b5730;color:#fff;padding:10px;font-weight:900}.marketrow button:disabled,.seed button:disabled,.uprow button:disabled{opacity:.32;filter:saturate(.25);cursor:not-allowed}
+.priceup{color:#65ff95}.pricedown{color:#ff6d7b}.event{padding:10px;border:1px solid #c56cff70;border-radius:14px;background:#49126755;margin-bottom:12px}
+.progress{height:7px;background:#ffffff12;border-radius:8px;overflow:hidden;margin-top:7px}.progress i{display:block;height:100%;background:#71ff9b}.mini{font-size:11px;opacity:.72}.badge{display:inline-block;padding:3px 7px;border-radius:10px;background:#ffffff10;margin:2px;font-size:10px}.contract{padding:12px;margin:8px 0;border:1px solid #68ff9440;border-radius:14px;background:#102019aa}.audioBtn{cursor:pointer}.ach{padding:9px 0;border-bottom:1px solid #ffffff10}.done{color:#69ff98}
+
+/* Evolution v0.9: multi-bay navigation */
+.bulkBar{position:absolute;z-index:19;top:calc(max(10px,env(safe-area-inset-top)) + 91px);left:12px;right:12px;display:flex;gap:8px;justify-content:center;pointer-events:auto}
+.bulkBar button{border:1px solid #73ff9b66;border-radius:12px;background:#10271eea;color:#c5ffda;font-size:11px;font-weight:900;padding:9px 13px;min-height:37px;box-shadow:0 4px 12px #0008}
+.bulkBar button:last-child{border-color:#ffc56588;background:#332515ee;color:#ffdc96}
+
+.bayBar{position:absolute;z-index:19;top:calc(max(10px,env(safe-area-inset-top)) + 48px);left:8px;right:8px;display:flex;gap:5px;align-items:center;justify-content:center;pointer-events:auto}
+.bayBar button{border:1px solid #69ffb65c;background:#08151ce8;color:#e5fff0;border-radius:11px;padding:9px 8px;font-weight:900;font-size:11px;backdrop-filter:blur(8px);min-height:36px}
+.bayBar .bayName{flex:1;max-width:160px;border-color:#a1ffae;background:#103625eb;color:#9dffb3}
+.bayBar .bayName.locked{border-color:#d7b77c;color:#ffe2a4;background:#292012ec}
+.bayBar .bayAction{background:#11231be8;color:#b6ffd3}
+#field{touch-action:pan-y}
+</style>
+<style>
+.uiIcon{width:25px;height:25px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 4px #0008)}
+.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.nav .uiIcon{width:29px;height:29px;margin-bottom:1px}
+.titleIcon{width:34px;height:34px;object-fit:contain;vertical-align:middle;margin-right:7px}
+.rowIcon{width:43px;height:43px;object-fit:contain;flex:0 0 auto}
+.syscard{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:12px 4px;border-bottom:1px solid #ffffff12}
+.syscard.locked{opacity:.46}
+.syscard button{border:0;border-radius:12px;background:#1b5730;color:#fff;padding:10px;font-weight:900}
+.audioCtl{display:grid;grid-template-columns:64px 1fr 42px;gap:9px;align-items:center;margin:10px 0}.audioCtl input{width:100%;accent-color:#69ff98}.trackNow{padding:10px;border:1px solid #69ff9833;border-radius:12px;background:#10201999;margin:10px 0}
+</style>
+<style id="perfHotfix">#bootLoader{position:fixed;inset:0;z-index:99999;background:#050706;display:flex;align-items:center;justify-content:center;transition:opacity .3s ease}#bootLoader.done{opacity:0;pointer-events:none}.bootBox{width:min(82vw,360px);text-align:center;color:#eef8f0;font-family:system-ui,-apple-system,sans-serif}.bootLogo{font-size:26px;font-weight:1000;letter-spacing:1.8px}.bootLogo b{color:#68ff96}.bootSub{font-size:11px;opacity:.55;margin:7px 0 14px;letter-spacing:1px}.bootTrack{height:7px;border-radius:99px;background:#ffffff14;overflow:hidden;border:1px solid #ffffff12}#bootFill{height:100%;width:0;background:linear-gradient(90deg,#4cff82,#b55cff);transition:width .1s linear}#bootPct{font-size:11px;opacity:.65;margin-top:8px}.bootBrand{width:104px;height:104px;object-fit:cover;border-radius:24px;margin:0 auto 12px;display:block;filter:drop-shadow(0 0 18px #63ff8a45)}</style>
+<style id="geneticsV08">
+.genHero{height:260px;border-radius:18px;background:#07100b url('assets/genetics/genetics_lab.webp') center/contain no-repeat;position:relative;overflow:hidden;margin:8px 0 12px;border:1px solid #8affb744}
+.genHero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0000 48%,#050706e8 100%)}
+.genHeroText{position:absolute;z-index:2;left:14px;right:14px;bottom:12px}.genHeroText b{font-size:20px}.genHeroText small{opacity:.72}
+.genGrid{display:grid;grid-template-columns:1fr 34px 1fr;gap:7px;align-items:end}.genParent label{display:block;font-size:10px;opacity:.65;margin:0 0 5px}
+.genParent select{width:100%;background:#0b1510;color:#fff;border:1px solid #65ff9550;border-radius:10px;padding:10px 7px;font-weight:800}
+.dnaJoin{text-align:center;font-size:24px;padding-bottom:8px;color:#bd72ff}
+.traits{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.trait{padding:8px 5px;border-radius:10px;background:#ffffff08;border:1px solid #ffffff10;text-align:center}.trait b{display:block;font-size:14px}.trait small{font-size:8px;opacity:.6}
+.hybridCard{display:grid;grid-template-columns:64px 1fr auto;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff12}.hybridCard img{width:62px;height:72px;object-fit:contain;background:transparent!important;border-radius:10px}.signatureTag{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:8px;background:#7b3cff33;border:1px solid #c979ff55;font-size:8px;font-weight:1000;color:#dfa8ff}.rarity{font-size:9px;font-weight:1000;letter-spacing:.8px}.rarity.Common{color:#b8c0bc}.rarity.Uncommon{color:#70ff91}.rarity.Rare{color:#62d9ff}.rarity.Epic{color:#c76cff}.rarity.Legendary{color:#ffd66b}.rarity.Exotic{color:#ff74e8;text-shadow:0 0 8px #ff4bd7}
+.breakthrough{padding:12px;border-radius:15px;border:1px solid #b96cff88;background:linear-gradient(135deg,#163a2255,#47165d66);margin:10px 0;text-align:center}.breakthrough h3{margin:5px 0;color:#d99aff}
+.genTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.genTabs button{border:0;border-radius:10px;padding:9px;background:#ffffff0c;color:#fff;font-weight:900}.genTabs button.on{background:#245c38}
+</style>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#07100b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="EMB Farms"><link rel="manifest" href="manifest.webmanifest"><style id="geneticsV083">
+.genMachineGrid{display:grid;grid-template-columns:1fr .92fr 1fr;gap:7px;align-items:stretch;margin:10px 0}.machine{position:relative;min-width:0;border:1px solid #ffffff18;border-radius:14px;overflow:hidden;background:#070b09;box-shadow:inset 0 0 24px #000}.machine.a{border-color:#56ff8a55}.machine.b{border-color:#c15cff55}.machine.center{border-color:#75f8ff44}.machineArt{width:100%;aspect-ratio:1/1;display:block;object-fit:cover;opacity:.82}.machinePlant{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:55%;height:52%;object-fit:contain;filter:drop-shadow(0 8px 8px #000a)}.machineTitle{position:absolute;left:6px;right:6px;bottom:6px;padding:5px 4px;border-radius:8px;background:#020503d9;text-align:center;font-size:9px;font-weight:1000;letter-spacing:.7px}.machine select{position:absolute;left:5px;right:5px;bottom:27px;width:calc(100% - 10px);font-size:9px;background:#07110b;color:white;border:1px solid #ffffff22;border-radius:7px;padding:6px 3px}.hybBtn{position:absolute;left:7px;right:7px;bottom:8px;border:0;border-radius:9px;padding:8px 2px;background:linear-gradient(90deg,#2b8f4c,#7438a0);color:#fff;font-size:9px;font-weight:1000}.machine.center .machineTitle{bottom:43px}.genReadout{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.genReadout>div{background:#ffffff08;border:1px solid #ffffff12;border-radius:10px;padding:7px;text-align:center}.genReadout small{display:block;opacity:.55;font-size:8px}.genReadout b{font-size:11px}.genSupport{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.genSupport img{width:100%;border-radius:10px;display:block;opacity:.75}.hybridCard img,.breakthrough img{filter:drop-shadow(0 7px 7px #000b)}
+</style></head>
+<body><script>setTimeout(()=>{const b=document.getElementById("bootLoader");if(b){b.classList.add("done");setTimeout(()=>b.remove(),350)}},3500)</script><div id="bootLoader"><div class="bootBox"><img class="bootBrand" src="assets/branding/emb_farms_icon.webp" alt="EMB Farms"><div class="bootLogo">EMB <b>FARMS</b></div><div class="bootSub">PREPARING YOUR OPERATION</div><div class="bootTrack"><div id="bootFill"></div></div><div id="bootPct">0%</div></div></div><div class="game"><img class="bg" id="bg"><div class="vignette"></div><div class="flash" id="flash"></div><div class="hud"><div class="chip cash" id="cash"></div><div class="chip lvl" id="lv"></div><div class="spacer"></div><div class="chip audioBtn" id="audioChip" onclick="toggleAudio()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/audio.webp"></div><div class="chip" id="fac" onclick="openStats()" style="cursor:pointer"></div></div><div class="bayBar" id="bayBar"><button onclick="changeBay(-1)" aria-label="Previous bay">❮</button><button id="bayLabel" class="bayName" onclick="bayLabelTap()">BAY 1 / 6</button><button onclick="changeBay(1)" aria-label="Next bay">❯</button><button class="bayAction" onclick="openBayManager()">BAYS</button></div><div class="bulkBar"><button onclick="openPlantAll()">PLANT ALL</button><button onclick="harvestAll()">HARVEST ALL</button></div><div id="field"></div><div class="nav">
+<button class="primary" onclick="openSeeds()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/farm.webp"><span>FARM</span></button>
+<button onclick="openStorage()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/storage.webp"><span>STORAGE</span></button>
+<button onclick="openMarket()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/market.webp"><span>MARKET</span></button>
+<button onclick="openStrains()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/genetics.webp"><span>STRAINS</span></button>
+<button onclick="openUpgrades()"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/upgrades.webp"><span>UPGRADES</span></button></div><div class="toast" id="toast"></div><div class="modal" id="modal"><div class="sheet"><button class="close" onclick="closeModal()">×</button><div id="sheet"></div></div></div>
+<script>
+const data=[["green_dream","Green Dream",25,80,1],["sour_diesel_ish","Sour Diesel-ish",40,125,1],["purple_comet","Purple Comet",70,195,2],["blue_widow","Blue Widow",110,300,2],["lemon_haze_x","Lemon Haze X",175,460,3],["pineapple_turbo","Pineapple Turbo",265,675,3],["frostbite_og","Frostbite OG",400,960,4],["aurora_glow","Aurora Glow",590,1375,4],["galaxy_kush","Galaxy Kush",850,1900,5],["cosmic_chronic","Cosmic Chronic",1200,2650,5],["money_tree","Money Tree",1700,3650,6],["black_diamond_x","Black Diamond X",2350,5000,6]];
+const names=["","sprout","young","vegetative","flowering","harvest"];
+// Calibrated against the actual centers of the six rendered grow pads.
+// Perspective means each row has different X anchors; using two fixed columns is visibly wrong.
+const pads=[[31.6,46.8],[68.1,46.8],[28.3,58.9],[71.4,58.9],[23.1,75.8],[76.9,75.8]];
+const rowScale=[.82,.82,.94,.94,1.10,1.10];
+const stageWidth=[0,14,18,23,27,30];
+let G=JSON.parse(localStorage.getItem("embFarmsV2")||"null")||{cash:500,xp:0,facility:1,plots:Array(6).fill(null),harvests:0,inventory:{},upgrades:{speed:0,yield:0,storage:0},marketSeed:1,lastSeen:Date.now()},chosen=0;
+// The original G.plots array remains Bay 1 for backward-compatible saves.
+const BAY_LIMIT=6;
+G.plots=Array.isArray(G.plots)&&G.plots.length===6?G.plots:Array(6).fill(null);
+G.bays=Array.isArray(G.bays)?G.bays:[];
+G.bays=Array.from({length:BAY_LIMIT-1},(_,i)=>Array.isArray(G.bays[i])&&G.bays[i].length===6?G.bays[i]:Array(6).fill(null));
+G.unlockedBays=Math.max(1,Math.min(BAY_LIMIT,Number.isInteger(G.unlockedBays)?G.unlockedBays:1));
+let activeBay=0;
+function bayPlots(b=activeBay){return b===0?G.plots:G.bays[b-1]}
+function bayUnlockCost(b){return Math.round(3000*Math.pow(3,b-1))}
+function changeBay(delta){let b=activeBay+delta;if(b<0||b>=BAY_LIMIT)return;activeBay=b;draw();if(b>=G.unlockedBays)say("Unlock Bay "+(b+1)+" in BAYS")}
+function bayLabelTap(){if(activeBay>=G.unlockedBays)openBayManager();else say("Bay "+(activeBay+1)+" • "+bayPlots().filter(Boolean).length+"/6 planted")}
+function unlockBay(){if(G.unlockedBays>=BAY_LIMIT)return say("All bays unlocked");let b=G.unlockedBays,c=bayUnlockCost(b);if(G.cash<c){sfx("error");return say("Need $"+c.toLocaleString())}if(!confirm("Unlock Bay "+(b+1)+" for $"+c.toLocaleString()+"?"))return;G.cash-=c;G.unlockedBays++;activeBay=b;save();sfx("facility");draw();openBayManager()}
+function openBayManager(){
+ let rows=Array.from({length:BAY_LIMIT},(_,b)=>{let plots=bayPlots(b),open=b<G.unlockedBays,planted=plots.filter(Boolean).length,ready=plots.filter(p=>p&&stage(p)===5).length;return `<button class="bigbtn" style="width:100%;margin:5px 0;opacity:${open?1:.65}" onclick="selectBay(${b})">${open?'BAY '+(b+1)+' • '+planted+'/6 planted • '+ready+' ready':'🔒 BAY '+(b+1)}</button>`}).join("");
+ sheet.innerHTML=`<h2>Grow Bays</h2><p>Each bay has six independent plots. Swipe left or right on the grow room to navigate.</p>${rows}${G.unlockedBays<BAY_LIMIT?`<button class="bigbtn" onclick="unlockBay()">UNLOCK BAY ${G.unlockedBays+1} • $${bayUnlockCost(G.unlockedBays).toLocaleString()}</button>`:'<p>All six bays unlocked!</p>'}`;
+ modal.classList.add("on")
+}
+function selectBay(b){activeBay=b;modal.classList.remove("on");draw();if(b>=G.unlockedBays)openBayManager()}
+let bayTouchX=null,bayTouchY=null;
+function setupBaySwipe(){let el=document.getElementById("field");el.addEventListener("touchstart",e=>{if(e.touches.length!==1)return;bayTouchX=e.touches[0].clientX;bayTouchY=e.touches[0].clientY},{passive:true});el.addEventListener("touchend",e=>{if(bayTouchX===null||!e.changedTouches.length)return;let dx=e.changedTouches[0].clientX-bayTouchX,dy=e.changedTouches[0].clientY-bayTouchY;bayTouchX=null;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5){changeBay(dx<0?1:-1);window.baySwipedAt=Date.now()}},{passive:true})}
+setupBaySwipe();
+G.inventory=G.inventory||{};G.upgrades=G.upgrades||{speed:0,yield:0,storage:0};G.lastSeen=G.lastSeen||Date.now();
+G.mastery=G.mastery||{};G.quality=G.quality||{};G.lifetimeRevenue=G.lifetimeRevenue||0;G.bestSale=G.bestSale||0;G.perfects=G.perfects||0;G.achievements=G.achievements||{};G.audio=G.audio||{music:.34,sfx:.65,on:true};G.audio.music=G.audio.music??.34;G.audio.sfx=G.audio.sfx??.65;G.audio.on=G.audio.on!==false;G.contract=G.contract||null;G.research=G.research||{genetics:0,automation:0,analytics:0};G.autoBank=G.autoBank||0;
+G.genetics=G.genetics||{hybrids:[],discoveries:{},breedCount:0};
+G.genetics.hybrids=G.genetics.hybrids||[];G.genetics.discoveries=G.genetics.discoveries||{};G.genetics.breedCount=G.genetics.breedCount||0;
+G.genetics.history=Array.isArray(G.genetics.history)?G.genetics.history:[];G.genetics.milestones=G.genetics.milestones||{};
+const SIGNATURES={
+"frostbite_og|purple_comet":{id:"frost_comet",name:"Frost Comet",seed:3300,value:7600},
+"aurora_glow|sour_diesel_ish":{id:"neon_diesel",name:"Neon Diesel",seed:3500,value:8100},
+"aurora_glow|blue_widow":{id:"aurora_widow",name:"Aurora Widow",seed:3900,value:9000},
+"lemon_haze_x|money_tree":{id:"solar_haze",name:"Solar Haze",seed:4300,value:9900},
+"black_diamond_x|galaxy_kush":{id:"galaxy_diamond",name:"Galaxy Diamond",seed:5200,value:12200},
+"cosmic_chronic|money_tree":{id:"money_nebula",name:"Money Nebula",seed:5800,value:13800}
+};
+const RARITIES=["Common","Uncommon","Rare","Epic","Legendary","Exotic"];
+function sigKey(a,b){return [a,b].sort().join("|")}
+function visualIdFor(id){let h=G.genetics&&G.genetics.hybrids&&G.genetics.hybrids.find(x=>x.id===id);if(h)return h.visualId||h.id;let d=data.find(x=>x[0]===id);return (d&&d[5])||id}
+function hybridData(h){return [h.id,h.name,h.seed,h.value,6,h.visualId||h.id]}
+G.genetics.hybrids.forEach(h=>{if(!data.some(d=>d[0]===h.id))data.push(hybridData(h))});
+
+// Production audio manager: four real music tracks + fourteen real SFX.
+const MUSIC={early:"assets/audio/music/subterranean_growth.mp3",mid:"assets/audio/music/hydroponic_ops.mp3",late:"assets/audio/music/automated_scale.mp3",research:"assets/audio/music/sterile_lab.mp3"};
+const SFX={plant:"plant.mp3",harvest:"harvest.mp3",sell:"sell_cash.mp3",upgrade:"purchase_upgrade.mp3",level:"level_up.mp3",facility:"facility_unlock.mp3",research:"research_complete.mp3",contract:"contract_complete.mp3",achievement:"achievement.mp3",perfect:"perfect_harvest.mp3",error:"error.mp3",click:"ui_click.mp3",unlock:"unlock.mp3",ready:"plant_ready.mp3"};
+let audioStarted=false,currentTrack=null,musicA=null,musicB=null,activeMusic=null,musicFadeTimer=null,lastSfx={};
+function musicKey(){return G.facility<=2?"early":G.facility<=4?"mid":"late"}
+function mkMusic(src){let a=new Audio(src);a.loop=true;a.preload="auto";a.volume=0;return a}
+function audioInit(){if(audioStarted)return;audioStarted=true;musicA=mkMusic(MUSIC[musicKey()]);musicB=mkMusic(MUSIC[musicKey()]);activeMusic=musicA;if(G.audio.on)playMusic(musicKey(),false)}
+function fadeVolume(a,to,ms=900){if(!a)return;let from=a.volume,t0=performance.now();function f(t){let q=Math.max(0,Math.min(1,(t-t0)/ms));a.volume=Math.max(0,Math.min(1,from+(to-from)*q));if(q<1)requestAnimationFrame(f);else if(to===0)a.pause()}requestAnimationFrame(f)}
+function playMusic(key,cross=true){if(!G.audio.on)return;audioInit();if(currentTrack===key&&activeMusic&&!activeMusic.paused){activeMusic.volume=G.audio.music;return}let next=activeMusic===musicA?musicB:musicA;next.src=MUSIC[key];next.currentTime=0;next.volume=0;next.play().catch(()=>{});if(cross&&activeMusic)fadeVolume(activeMusic,0,900);else if(activeMusic)activeMusic.pause();fadeVolume(next,G.audio.music,cross?1100:250);activeMusic=next;currentTrack=key}
+function sfx(k){if(!G.audio.on)return;audioInit();let now=Date.now(),cool=k==="click"?65:120;if(now-(lastSfx[k]||0)<cool)return;lastSfx[k]=now;let a=new Audio("assets/audio/sfx/"+SFX[k]);a.volume=Math.min(1,G.audio.sfx*(k==="facility"?.9:k==="click"?.55:1));a.play().catch(()=>{})}
+function toggleAudio(){G.audio.on=!G.audio.on;save();if(G.audio.on){audioInit();playMusic(currentTrack||musicKey(),false);sfx("click")}else{if(musicA)musicA.pause();if(musicB)musicB.pause()}draw()}
+function setAudio(kind,val){G.audio[kind]=Number(val);save();if(kind==="music"&&activeMusic)activeMusic.volume=G.audio.on?G.audio.music:0;let el=document.getElementById(kind+"Val");if(el)el.textContent=Math.round(G.audio[kind]*100)+"%"}
+function closeModal(){modal.classList.remove("on");playMusic(musicKey())}
+function maybeLevel(old){if(level()>old)sfx("level")}
+document.addEventListener("pointerdown",()=>{audioInit();if(G.audio.on)playMusic(currentTrack||musicKey(),false)},{once:true});
+const save=()=>localStorage.setItem("embFarmsV2",JSON.stringify(G)),level=()=>1+Math.floor(G.xp/100);
+function growStep(){return Math.max(3500,9000-G.upgrades.speed*850)}
+function stage(p){return Math.min(5,1+Math.floor(Math.max(0,Date.now()-p.t)/growStep()))}
+function storedUnits(){return Object.values(G.inventory).reduce((a,n)=>a+(Number(n)||0),0)}
+function storageCap(){return 24+G.upgrades.storage*12+Math.max(0,G.facility-1)*4}
+function mastery(id){return G.mastery[id]||0}
+function masteryLevel(id){return Math.min(10,1+Math.floor(mastery(id)/5))}
+function facilityBonus(){return 1+(G.facility-1)*.03}
+function researchCost(k){let b={genetics:18000,automation:26000,analytics:22000}[k];return Math.round(b*Math.pow(1.7,G.research[k]||0))}
+function researchBonus(){return 1+(G.research.genetics||0)*.025}
+function buyResearch(k){if(G.facility<6){sfx("error");return say("Reach Facility 6 first")}let c=researchCost(k);if(G.cash<c){sfx("error");return say("Need $"+c.toLocaleString())}let ol=level();G.cash-=c;G.research[k]=(G.research[k]||0)+1;G.xp+=80;save();sfx("research");maybeLevel(ol);openResearch();draw();say("RESEARCH COMPLETE")}
+
+function hash32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rngFrom(seed){let x=seed>>>0;return()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296}}
+function parentPool(){return data.filter(d=>d[4]<=G.facility)}
+function geneticStats(id){let h=G.genetics.hybrids.find(x=>x.id===id);if(h)return h.stats;let d=data.find(x=>x[0]===id),seed=hash32(id),r=rngFrom(seed);return{growth:Math.round(42+r()*45),yield:Math.round(42+r()*45),quality:Math.round(40+r()*48),market:Math.round(38+r()*50),stability:Math.round(45+r()*45),demand:Math.round(38+r()*50)}}
+function rarityRoll(r,parents){let bonus=(G.research.genetics||0)*.015+(parents.reduce((s,p)=>s+(geneticStats(p).quality||50),0)/200)*.06,x=r()+bonus;return x>.985?5:x>.94?4:x>.82?3:x>.62?2:x>.34?1:0}
+function makeHybridName(a,b,signature){if(signature)return signature.name;let A=data.find(x=>x[0]===a)?.[1]||a,B=data.find(x=>x[0]===b)?.[1]||b;let aw=A.split(" "),bw=B.split(" ");return (aw[0]+" "+bw[bw.length-1]).replace(/X$/,"").trim()}
+function breedCost(){return Math.max(2500,6500-(G.research.genetics||0)*450)}
+function breedSelected(){
+ if(G.facility<6){sfx("error");return say("Facility 6 required")}
+ let a=document.getElementById("parentA")?.value,b=document.getElementById("parentB")?.value;if(!a||!b||a===b){sfx("error");return say("Choose two different parents")}
+ let cost=breedCost();if(G.cash<cost){sfx("error");return say("Need $"+cost.toLocaleString())}
+ G.cash-=cost;G.genetics.breedCount++;let attempt=G.genetics.breedCount,key=sigKey(a,b),sig=SIGNATURES[key],seed=hash32(key+"|"+attempt+"|"+(G.research.genetics||0)),r=rngFrom(seed);
+ let sa=geneticStats(a),sb=geneticStats(b),stats={};["growth","yield","quality","market","stability","demand"].forEach(k=>stats[k]=Math.max(20,Math.min(99,Math.round((sa[k]+sb[k])/2+(r()-.5)*18+(G.research.genetics||0)*1.2))));
+ let ri=rarityRoll(r,[a,b]),mutation=r()<(0.055+(G.research.genetics||0)*.008)?["Rapid Cycle","Heavy Yield","Prismatic Quality","Market Magnet","Stable Genome","Demand Surge"][Math.floor(r()*6)]:null;
+ if(mutation){let map={"Rapid Cycle":"growth","Heavy Yield":"yield","Prismatic Quality":"quality","Market Magnet":"market","Stable Genome":"stability","Demand Surge":"demand"};stats[map[mutation]]=Math.min(99,stats[map[mutation]]+12)}
+ let baseId=sig?sig.id:"hyb_"+hash32(key).toString(36),existing=G.genetics.hybrids.find(h=>h.id===baseId),id=baseId;
+ // Signature identity is unique; ordinary repeated crosses create phenotypes of same lineage only when better.
+ let visualId=sig?sig.id:(data.find(x=>x[0]===a)?.[5]||a),name=makeHybridName(a,b,sig),value=sig?sig.value:Math.round(((data.find(x=>x[0]===a)?.[3]||100)+(data.find(x=>x[0]===b)?.[3]||100))*.72*(1+ri*.12)),seedCost=sig?sig.seed:Math.round(value*.42);
+ let h={id,name,parents:[a,b],generation:1+Math.max(G.genetics.hybrids.find(x=>x.id===a)?.generation||0,G.genetics.hybrids.find(x=>x.id===b)?.generation||0),rarity:RARITIES[ri],rarityIndex:ri,mutation,stats,value,seed:seedCost,visualId,signature:!!sig,created:Date.now()};
+ let retained=h;
+ if(existing){
+   let oldScore=Object.values(existing.stats).reduce((x,n)=>x+n,0)+(existing.rarityIndex||0)*25,newScore=Object.values(stats).reduce((x,n)=>x+n,0)+ri*25;
+   if(newScore>oldScore){Object.assign(existing,h);say("BETTER PHENOTYPE SAVED")}else say("Existing phenotype remains stronger");
+   retained=existing;
+ }else{G.genetics.hybrids.push(h);data.push(hybridData(h));G.genetics.discoveries[id]=true;sfx(sig?"achievement":"unlock")}
+ G.genetics.history.unshift({at:Date.now(),parents:[a,b],offspring:id,rarity:h.rarity,mutation:h.mutation,improved:!existing||retained===h||retained.stats===h.stats});
+ G.genetics.history=G.genetics.history.slice(0,100);
+ G.xp+=120+ri*25;checkGeneticsMilestones();save();draw();showBreedResult(retained,!existing);sfx("research")
+}
+// Evolution v0.9: permanent discovery milestones and genealogy ledger.
+const GENETICS_MILESTONES=[
+ {id:"first_cross",title:"First Bloodline",need:1,reward:2500,kind:"crosses"},
+ {id:"cross_25",title:"Dedicated Breeder",need:25,reward:12500,kind:"crosses"},
+ {id:"cross_100",title:"Master Geneticist",need:100,reward:50000,kind:"crosses"},
+ {id:"sig_1",title:"Signature Breakthrough",need:1,reward:10000,kind:"signatures"},
+ {id:"sig_3",title:"Rare Genome Collector",need:3,reward:30000,kind:"signatures"},
+ {id:"sig_6",title:"Signature Genome Archive",need:6,reward:100000,kind:"signatures"}
+];
+function signatureCount(){return new Set(G.genetics.hybrids.filter(h=>h.signature).map(h=>h.id)).size}
+function checkGeneticsMilestones(){
+ for(const m of GENETICS_MILESTONES){
+  const progress=m.kind==="crosses"?G.genetics.breedCount:signatureCount();
+  if(progress>=m.need&&!G.genetics.milestones[m.id]){
+   G.genetics.milestones[m.id]=Date.now();G.cash+=m.reward;
+   setTimeout(()=>say(m.title+" • +$"+m.reward.toLocaleString()),200);
+  }
+ }
+}
+function openGeneticsHistory(){
+ const items=G.genetics.history;
+ sheet.innerHTML=`<h2>BREEDING JOURNAL</h2><p class=mini>Last ${items.length} crosses saved on this device (up to 100).</p><button class=bigbtn onclick="openGenetics('codex')">BACK TO CODEX</button>`+
+ (items.length?items.map(x=>`<div class=hybridCard><div style="font-size:24px">🧬</div><div><b>${escapeFarmText(parentName(x.offspring))}</b><br><small>${escapeFarmText(parentName(x.parents[0]))} × ${escapeFarmText(parentName(x.parents[1]))}<br>${new Date(x.at).toLocaleDateString()} • ${escapeFarmText(x.rarity||'Unknown')}${x.mutation?' • '+escapeFarmText(x.mutation):''}</small></div></div>`).join(''):'<p>No crosses recorded since this update.</p>');
+ modal.classList.add('on');
+}
+function escapeFarmText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function traitGrid(s){return `<div class=traits>${[["Growth",s.growth],["Yield",s.yield],["Quality",s.quality],["Market",s.market],["Stability",s.stability],["Demand",s.demand]].map(x=>`<div class=trait><small>${x[0]}</small><b>${x[1]}</b></div>`).join("")}</div>`}
+function showBreedResult(h,isNew){let vis=h.visualId||h.id;sheet.innerHTML=`<div class="breakthrough"><small>${h.signature&&isNew?"GENETIC BREAKTHROUGH":"BREEDING RESULT"}</small><h3>${h.name}</h3><div style="position:relative;width:220px;height:220px;margin:auto"><img style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:18px;opacity:.68" src="assets/genetics/hybridizer.webp"><img style="position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:62%;height:68%;object-fit:contain" src="assets/plants/${vis}/${vis}_05_harvest.webp"></div><div class="rarity ${h.rarity}">${h.rarity.toUpperCase()} • GEN ${h.generation}${h.signature?` <span class=signatureTag>SIGNATURE</span>`:""}</div>${h.mutation?`<p><b>MUTATION:</b> ${h.mutation}</p>`:""}${traitGrid(h.stats)}<small>${parentName(h.parents[0])} × ${parentName(h.parents[1])}</small><br><button class=bigbtn onclick="openGenetics()">RETURN TO LAB</button></div>`;modal.classList.add("on")}
+function parentName(id){return data.find(x=>x[0]===id)?.[1]||id}
+function parentThumb(id){let v=visualIdFor(id);return `assets/plants/${v}/${v}_05_harvest.webp`}
+function updateParentPreview(){
+ let a=document.getElementById("parentA")?.value,b=document.getElementById("parentB")?.value;if(!a||!b)return;
+ let ai=document.getElementById("parentAPlant"),bi=document.getElementById("parentBPlant");if(ai)ai.src=parentThumb(a);if(bi)bi.src=parentThumb(b);
+ let sa=geneticStats(a),sb=geneticStats(b),el=document.getElementById("parentPreview");if(!el)return;
+ let key=sigKey(a,b),sig=SIGNATURES[key];el.innerHTML=`<div class=genReadout><div><small>PARENT A</small><b>${parentName(a)}</b></div><div><small>PAIR STATUS</small><b>${a===b?"CHOOSE DIFFERENT":sig?"UNKNOWN BREAKTHROUGH SIGNAL":"VIABLE CROSS"}</b></div><div><small>PARENT B</small><b>${parentName(b)}</b></div></div><div class=traits><div class=trait><small>AVG GROWTH</small><b>${Math.round((sa.growth+sb.growth)/2)}</b></div><div class=trait><small>AVG QUALITY</small><b>${Math.round((sa.quality+sb.quality)/2)}</b></div><div class=trait><small>AVG YIELD</small><b>${Math.round((sa.yield+sb.yield)/2)}</b></div></div>`;
+}
+function openGenetics(tab="breed"){
+ sfx("click");if(G.facility>=6)playMusic("research");if(G.facility<6){sheet.innerHTML=`<h2>Genetics Lab</h2><p>Reach Facility 6 to unlock genetic engineering.</p>`;modal.classList.add("on");return}
+ let pool=parentPool(),opts=pool.map(d=>`<option value="${d[0]}">${d[1]}</option>`).join("");
+ sheet.innerHTML=`<div class=genHero><div class=genHeroText><b>GENETICS LAB</b><br><small>Cross strains • discover signatures • build bloodlines</small></div></div><div class=genTabs><button class="${tab==="breed"?"on":""}" onclick="openGenetics('breed')">BREED</button><button class="${tab==="codex"?"on":""}" onclick="openGenetics('codex')">CODEX ${G.genetics.hybrids.length}</button><button class="${tab==="progress"?"on":""}" onclick="openGenetics('progress')">PROGRESS</button></div>`;
+ if(tab==="breed"){
+  sheet.innerHTML+=`<div class=genMachineGrid><div class="machine a"><img class=machineArt src="assets/genetics/parent_a.webp"><img id=parentAPlant class=machinePlant><select id=parentA onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT A</div></div><div class="machine center"><img class=machineArt src="assets/genetics/hybridizer.webp"><div class=machineTitle>HYBRIDIZATION</div><button class=hybBtn onclick="breedSelected()">CROSS • $${breedCost().toLocaleString()}</button></div><div class="machine b"><img class=machineArt src="assets/genetics/parent_b.webp"><img id=parentBPlant class=machinePlant><select id=parentB onchange="updateParentPreview()">${opts}</select><div class=machineTitle>PARENT B</div></div></div><div id=parentPreview></div><p class=mini>Genetics Research lowers cost and improves rare outcomes. Six signature breakthroughs are hidden among the bloodlines.</p><div class=genSupport><img src="assets/genetics/codex.webp"><img src="assets/genetics/mutation.webp"><img src="assets/genetics/lineage.webp"></div>`;
+  let pb=document.getElementById("parentB");if(pb&&pb.options.length>1)pb.selectedIndex=1;updateParentPreview();
+ }else if(tab==="progress"){
+  const signatures=Object.values(SIGNATURES);
+  sheet.innerHTML+=`<h3>GENETIC PROGRESSION</h3><p>${signatureCount()} / ${signatures.length} secret signatures • ${G.genetics.breedCount} lifetime crosses</p><div class="progress"><i style="width:${Math.round(signatureCount()/signatures.length*100)}%"></i></div>`;
+  for(const m of GENETICS_MILESTONES){const value=m.kind==="crosses"?G.genetics.breedCount:signatureCount(),done=!!G.genetics.milestones[m.id];sheet.innerHTML+=`<div class="ach ${done?"done":""}">${done?"✓":"○"} ${m.title} <span class=mini>${Math.min(value,m.need)}/${m.need} • +$${m.reward.toLocaleString()}</span></div>`}
+  sheet.innerHTML+=`<h3>SECRET GENOMES</h3>`+signatures.map(x=>{const h=G.genetics.hybrids.find(h=>h.id===x.id);return `<div class="ach ${h?"done":""}">${h?"✓ "+escapeFarmText(x.name):"◇ Undiscovered Signature"}</div>`}).join('');
+  sheet.innerHTML+=`<button class="bigbtn" onclick="openGeneticsHistory()">BREEDING JOURNAL (${G.genetics.history.length})</button>`;
+ }else{
+  sheet.innerHTML+=`<button class="bigbtn" onclick="openGeneticsHistory()">BREEDING JOURNAL (${G.genetics.history.length})</button>`;
+  if(!G.genetics.hybrids.length)sheet.innerHTML+=`<p>No hybrids discovered yet. Your Codex will record offspring, rarity, mutations and lineage.</p>`;
+  G.genetics.hybrids.forEach(h=>{let vis=h.visualId||h.id;sheet.innerHTML+=`<div class=hybridCard><img src="assets/plants/${vis}/${vis}_05_harvest.webp"><div><b>${h.name}</b><br><span class="rarity ${h.rarity}">${h.rarity} • Gen ${h.generation}${h.signature?` <span class=signatureTag>SIGNATURE</span>`:""}</span><br><small>${parentName(h.parents[0])} × ${parentName(h.parents[1])}${h.mutation?" • "+h.mutation:""}</small></div><button onclick="showHybrid('${h.id}')">VIEW</button></div>`})
+ }
+ modal.classList.add("on")
+}
+function showHybrid(id){let h=G.genetics.hybrids.find(x=>x.id===id);if(!h)return;showBreedResult(h,false)}
+
+function openResearch(){sfx("click");if(G.facility>=6)playMusic("research");let lock=G.facility<6;sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/research.webp">Research Division</h2><p class="mini">${lock?"Reach Facility 6 to open the endgame research division.":"Facility 6 is the beginning of the empire layer. Research now creates permanent operation bonuses."}</p>
+<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/genetics.webp"><div><b>Genetics Research Lv.${G.research.genetics||0}</b><br><small>+2.5% premium-value potential / level</small></div><button ${lock?"disabled":""} onclick="buyResearch('genetics')">$${researchCost("genetics").toLocaleString()}</button></div><div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/genetics.webp"><div><b>Genetics Lab</b><br><small>Breed, discover and plant persistent hybrid bloodlines</small></div><button ${lock?"disabled":""} onclick="openGenetics()">ENTER</button></div>
+<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/automation.webp"><div><b>Automation Engineering Lv.${G.research.automation||0}</b><br><small>Foundation for automated harvest/production systems</small></div><button ${lock?"disabled":""} onclick="buyResearch('automation')">$${researchCost("automation").toLocaleString()}</button></div>
+<div class="syscard ${lock?"locked":""}"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/market.webp"><div><b>Market Analytics Lv.${G.research.analytics||0}</b><br><small>Foundation for forecasting and advanced market tools</small></div><button ${lock?"disabled":""} onclick="buyResearch('analytics')">$${researchCost("analytics").toLocaleString()}</button></div>`;modal.classList.add("on")}
+function qualityRoll(id){let r=Math.random()+masteryLevel(id)*.012+G.facility*.008;return r>.985?4:r>.91?3:r>.72?2:r>.42?1:0}
+const qualities=["Standard","Fine","Premium","Exotic","Perfect"],qMult=[1,1.08,1.18,1.35,1.65];
+function marketSeconds(){return 30-Math.floor((Date.now()%30000)/1000)}
+function draw(){
+ bg.src=`assets/facilities/facility_${String(G.facility).padStart(2,"0")}.webp`;cash.textContent="$"+Math.floor(G.cash).toLocaleString();lv.textContent="LV "+level();fac.textContent="FAC "+G.facility;const bl=document.getElementById("bayLabel");bl.textContent="BAY "+(activeBay+1)+" / "+BAY_LIMIT+(activeBay>=G.unlockedBays?" 🔒":"");bl.classList.toggle("locked",activeBay>=G.unlockedBays);audioChip.style.opacity=G.audio.on?"1":".38";field.innerHTML="";
+ if(activeBay>=G.unlockedBays)return;
+ pads.forEach((q,i)=>{let p=bayPlots()[i],h=document.createElement("button");h.className="hit";h.style.left=q[0]+"%";h.style.top=q[1]+"%";h.style.width=(i<2?"28%":i<4?"32%":"38%");h.style.height=(i<2?"9%":i<4?"11%":"14%");h.onclick=()=>{if(Date.now()-(window.baySwipedAt||0)>450)tap(i)};field.appendChild(h);
+  if(p){let s=stage(p);if(s===5&&!p.readyNotified){p.readyNotified=true;save();sfx("ready")}let im=document.createElement("img");im.className="plant";im.style.left=q[0]+"%";im.style.top=q[1]+"%";im.style.width=(stageWidth[s]*rowScale[i])+"%";let vis=visualIdFor(p.id);im.src=`assets/plants/${vis}/${vis}_${String(s).padStart(2,"0")}_${names[s]}.webp`;field.appendChild(im);
+   let t=document.createElement("div");t.className="status "+(s===5?"ready":"");t.style.left=q[0]+"%";t.style.top=(q[1]+(i<2?4.2:i<4?5.0:5.8))+"%";t.textContent=s===5?"HARVEST":`${s}/5`;field.appendChild(t)}})}
+function tap(i){if(activeBay>=G.unlockedBays)return openBayManager();chosen=i;let p=bayPlots()[i];if(!p)return openSeeds();let s=stage(p);if(s<5){sfx("click");return say("Growing • "+s+"/5")};let d=data.find(x=>x[0]===p.id),qty=1+G.upgrades.yield;if(storedUnits()+qty>storageCap()){sfx("error");return say(`Storage full • ${storedUnits()}/${storageCap()}`)}let ol=level(),q=qualityRoll(p.id);G.inventory[p.id]=(G.inventory[p.id]||0)+qty;G.quality[p.id]=G.quality[p.id]||[0,0,0,0,0];G.quality[p.id][q]+=qty;G.mastery[p.id]=(G.mastery[p.id]||0)+1;if(q===4)G.perfects+=qty;G.xp+=18*d[4];G.harvests++;bayPlots()[i]=null;checkAchievements();save();sfx(q===4?"perfect":"harvest");maybeLevel(ol);flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");say(`${qualities[q]} • +${qty} ${d[1]}`);draw()}
+function openSeeds(){sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/seeds.webp">Seed Vault</h2>`;data.forEach(d=>{let lock=G.facility<d[4],r=document.createElement("div");r.className="seed "+(lock?"lock":"");r.innerHTML=`<img class="thumb" src="assets/plants/${d[5]||d[0]}/${d[5]||d[0]}_05_harvest.webp"><div><b>${d[1]}</b><br><small>$${d[2]} seed • $${d[3]} harvest • Facility ${d[4]}</small></div><button ${lock?"disabled":""}>${lock?"LOCKED":"PLANT"}</button>`;r.querySelector("button").onclick=()=>plant(d);sheet.appendChild(r)});modal.classList.add("on")}
+function plant(d){if(activeBay>=G.unlockedBays)return openBayManager();if(bayPlots()[chosen]){sfx("error");return say("Plot occupied")}if(G.cash<d[2]){sfx("error");return say("Not enough cash")}if(G.facility<d[4])return;G.cash-=d[2];bayPlots()[chosen]={id:d[0],t:Date.now()};save();sfx("plant");modal.classList.remove("on");draw();say("Planted "+d[1])}
+// Phase 3 bulk operations act on the currently selected, unlocked bay only.
+function openPlantAll(){
+ if(activeBay>=G.unlockedBays)return openBayManager();
+ const empty=bayPlots().filter(p=>!p).length;
+ if(!empty)return say("All plots occupied");
+ sheet.innerHTML=`<h2>Plant All • Bay ${activeBay+1}</h2><p>Fill up to ${empty} empty plots with one strain. You only pay for seeds actually planted.</p>`;
+ data.forEach(d=>{
+  if(G.facility<d[4])return;
+  const count=Math.min(empty,Math.floor(G.cash/d[2]));
+  const row=document.createElement("div");row.className="seed";
+  row.innerHTML=`<img class="thumb" src="assets/plants/${d[5]||d[0]}/${d[5]||d[0]}_05_harvest.webp"><div><b>${d[1]}</b><br><small>${count} plants • $${(count*d[2]).toLocaleString()}</small></div><button ${count<1?"disabled":""}>PLANT</button>`;
+  row.querySelector("button").onclick=()=>plantAll(d);sheet.appendChild(row);
+ });
+ modal.classList.add("on");
+}
+function plantAll(d){
+ if(activeBay>=G.unlockedBays)return openBayManager();
+ if(G.facility<d[4])return say("Strain locked");
+ const plots=bayPlots(),empty=plots.reduce((a,p,i)=>{if(!p)a.push(i);return a},[]);
+ const count=Math.min(empty.length,Math.floor(G.cash/d[2]));
+ if(count<1)return say("Not enough cash or empty plots");
+ const now=Date.now();
+ for(let i=0;i<count;i++)plots[empty[i]]={id:d[0],t:now};
+ G.cash-=count*d[2];save();sfx("plant");modal.classList.remove("on");draw();say("Planted "+count+" × "+d[1]);
+}
+function harvestAll(){
+ if(activeBay>=G.unlockedBays)return openBayManager();
+ const plots=bayPlots(),ready=plots.map((p,i)=>p&&stage(p)===5?i:-1).filter(i=>i>=0);
+ if(!ready.length)return say("No plants ready in this bay");
+ const old=level();let harvested=0,perfect=0;
+ for(const i of ready){
+  const p=plots[i],d=data.find(x=>x[0]===p.id);
+  if(!d)continue;
+  const qty=1+G.upgrades.yield;
+  if(storedUnits()+qty>storageCap())break;
+  const q=qualityRoll(p.id);
+  G.inventory[p.id]=(G.inventory[p.id]||0)+qty;
+  G.quality[p.id]=G.quality[p.id]||[0,0,0,0,0];G.quality[p.id][q]+=qty;
+  G.mastery[p.id]=(G.mastery[p.id]||0)+1;
+  if(q===4){G.perfects+=qty;perfect++}
+  G.xp+=18*d[4];G.harvests++;plots[i]=null;harvested++;
+ }
+ if(!harvested)return say("Storage full • "+storedUnits()+"/"+storageCap());
+ checkAchievements();save();sfx(perfect?"perfect":"harvest");maybeLevel(old);
+ flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");draw();
+ say("Harvested "+harvested+"/"+ready.length+(harvested<ready.length?" • Storage full":""));
+}
+function facilityUp(){if(G.facility>=6){sfx("error");return say("Quantum Complex unlocked")}let costs=[0,700,1700,4200,9500,21000],c=costs[G.facility];if(G.cash<c){sfx("error");return say("Upgrade • $"+c.toLocaleString())}let ol=level();G.cash-=c;G.facility++;G.xp+=100;checkAchievements();save();sfx("facility");maybeLevel(ol);playMusic(musicKey());flash.classList.remove("go");void flash.offsetWidth;flash.classList.add("go");draw();say("FACILITY "+G.facility+" UNLOCKED")}
+function showStats(){sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/farm.webp">Operation</h2><p><b>Cash:</b> $${Math.floor(G.cash).toLocaleString()}</p><p><b>Level:</b> ${level()}</p><p><b>Facility:</b> ${G.facility}/6</p><p><b>Harvests:</b> ${G.harvests}</p><button onclick="if(confirm('Reset save?')){localStorage.removeItem('embFarmsV2');location.reload()}">Reset save</button>`;modal.classList.add("on")}
+function marketMult(id){let bucket=Math.floor(Date.now()/30000),n=[...id].reduce((a,c)=>a+c.charCodeAt(0),0);return .72+(((n*9301+bucket*49297)%1000)/1000)*.68}
+function demand(){let bucket=Math.floor(Date.now()/180000),i=(bucket*7)%data.length;return data[i]}
+function openStorage(){sfx("click");sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/storage.webp">Storage</h2><p><small>Capacity: ${storedUnits()} / ${storageCap()} units</small></p>`;let any=false;data.forEach(d=>{let q=G.inventory[d[0]]||0;if(q){any=true;let r=document.createElement("div");r.className="invrow";r.innerHTML=`<div><b>${d[1]}</b><br><small>${q} units stored</small></div><button>MARKET</button>`;r.querySelector("button").onclick=openMarket;sheet.appendChild(r)}});if(!any)sheet.innerHTML+="<p>Your shelves are empty. Harvest crops to stock them.</p>";modal.classList.add("on")}
+function openMarket(){sfx("click");ensureContract();let boom=demand();sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/market.webp">Live Market</h2><div class="event"><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/market.webp"> HIGH DEMAND: <b>${boom[1]}</b> pays +40% this cycle.<br><small>Prices refresh in ${marketSeconds()}s</small></div>`;sheet.innerHTML+=contractHtml();data.forEach(d=>{let q=G.inventory[d[0]]||0,m=marketMult(d[0]),isBoom=d[0]===boom[0],effective=m*(isBoom?1.4:1),price=Math.round(d[3]*effective),pct=Math.round((effective-1)*100),r=document.createElement("div");r.className="marketrow";r.innerHTML=`<div><b>${d[1]}</b><br><span class="${pct>=0?"priceup":"pricedown"}">$${price}/unit ${pct>=0?"▲":"▼"} ${Math.abs(pct)}%</span><br><small>Owned: ${q}${q?` • Quality ×${qualityValue(d[0]).toFixed(2)}`:""}${isBoom?" • 🔥 demand bonus included":""}</small></div><button ${q?"":"disabled"}>SELL ALL</button>`;r.querySelector("button").onclick=()=>{if(!q)return;let ol=level(),qm=qualityValue(d[0]),total=Math.round(price*q*qm*facilityBonus()*researchBonus());G.cash+=total;G.lifetimeRevenue+=total;G.bestSale=Math.max(G.bestSale,total);G.inventory[d[0]]=0;G.quality[d[0]]=[0,0,0,0,0];G.xp+=q*3;checkAchievements();save();sfx("sell");maybeLevel(ol);openMarket();draw();say(`SOLD • +$${total.toLocaleString()}`)};sheet.appendChild(r)});modal.classList.add("on")}
+function openStrains(){sfx("click");sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/genetics.webp">Strain Lab</h2><p class=mini>Harvest strains to build Mastery. Higher mastery improves quality odds.</p>${G.facility>=6?`<button class=bigbtn style="width:100%;margin-bottom:10px" onclick="openGenetics()">OPEN GENETICS LAB</button>`:""}`;data.forEach(d=>{let unlocked=G.facility>=d[4],r=document.createElement("div");r.className="seed "+(unlocked?"":"lock");r.innerHTML=`<img class="thumb" src="assets/plants/${d[5]||d[0]}/${d[5]||d[0]}_05_harvest.webp"><div><b>${d[1]}</b><br><small>${unlocked?"UNLOCKED":"Requires Facility "+d[4]} • Base value $${d[3]} • Mastery Lv.${masteryLevel(d[0])}</small><div class="progress"><i style="width:${Math.min(100,(mastery(d[0])%5)*20)}%"></i></div></div><b>${unlocked?"✓":"LOCKED"}</b>`;sheet.appendChild(r)});modal.classList.add("on")}
+function upCost(k){let base={speed:350,yield:600,storage:250}[k];return Math.round(base*Math.pow(1.62,G.upgrades[k]))}
+function buyUp(k){let c=upCost(k);if(G.cash<c){sfx("error");return say("Need $"+c.toLocaleString())}let ol=level();G.cash-=c;G.upgrades[k]++;G.xp+=35;checkAchievements();save();sfx("upgrade");maybeLevel(ol);openUpgrades();draw();say("UPGRADE INSTALLED")}
+function openUpgrades(){sfx("click");let fc=G.facility<6?[0,700,1700,4200,9500,21000][G.facility]:null;sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/upgrades.webp">Upgrades</h2>
+<div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/grow_lights.webp"><div><b>Grow Lights Lv.${G.upgrades.speed}</b><br><small>Faster growth every level</small></div></div><button onclick="buyUp('speed')">$${upCost("speed").toLocaleString()}</button></div>
+<div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/nutrients.webp"><div><b>Nutrient Mix Lv.${G.upgrades.yield}</b><br><small>+1 unit per harvest / level</small></div></div><button onclick="buyUp('yield')">$${upCost("yield").toLocaleString()}</button></div>
+<div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/storage.webp"><div><b>Storage Lv.${G.upgrades.storage}</b><br><small>+12 storage capacity / level</small></div></div><button onclick="buyUp('storage')">$${upCost("storage").toLocaleString()}</button></div>
+<div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/farm.webp"><div><b>Facility ${G.facility}/6</b><br><small>${G.facility<6?"Unlock strains + room + 3% sale bonus":"MAX FACILITY • Research Division available"}</small></div></div>${fc?`<button onclick="facilityUp();openUpgrades()">$${fc.toLocaleString()}</button>`:"<b>MAX</b>"}</div>
+<div class="uprow"><div style="display:flex;gap:10px;align-items:center"><img loading="lazy" decoding="async" class=rowIcon src="assets/ui/research.webp"><div><b>Research Division</b><br><small>${G.facility>=6?"Endgame genetics, automation & analytics":"Unlocks at Facility 6"}</small></div></div><button ${G.facility<6?"disabled":""} onclick="openResearch()">OPEN</button></div>`;modal.classList.add("on")}
+function qualityValue(id){let a=G.quality[id]||[],q=G.inventory[id]||0;if(!q)return 1;let tracked=a.reduce((x,n)=>x+(n||0),0),weighted=a.reduce((sum,n,i)=>sum+(n||0)*qMult[i],0);return ((q-tracked)+weighted)/q}
+function ensureContract(){let bucket=Math.floor(Date.now()/240000);if(G.contract&&G.contract.bucket===bucket)return;let unlocked=data.filter(d=>G.facility>=d[4]),d=unlocked[(bucket*11)%unlocked.length],qty=2+((bucket*3)%5),bonus=1.55;G.contract={bucket,id:d[0],qty,bonus}}
+function contractHtml(){ensureContract();let c=G.contract,d=data.find(x=>x[0]===c.id),owned=G.inventory[c.id]||0,pay=Math.round(d[3]*c.qty*c.bonus*facilityBonus()*researchBonus());return `<div class="contract"><b><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/contracts.webp"> CONTRACT</b><br>${c.qty}× ${d[1]} • Reward $${pay.toLocaleString()}<br><small>Owned ${owned}/${c.qty}</small> <button class="bigbtn" ${owned<c.qty?"disabled":""} onclick="fillContract()">FULFILL</button></div>`}
+function fillContract(){let ol=level(),c=G.contract,d=data.find(x=>x[0]===c.id),owned=G.inventory[c.id]||0;if(owned<c.qty){sfx("error");return}let pay=Math.round(d[3]*c.qty*c.bonus*facilityBonus()*researchBonus());G.inventory[c.id]-=c.qty;let qa=G.quality[c.id]||[0,0,0,0,0],left=c.qty;for(let i=0;i<qa.length&&left;i++){let take=Math.min(qa[i]||0,left);qa[i]-=take;left-=take}G.cash+=pay;G.lifetimeRevenue+=pay;G.bestSale=Math.max(G.bestSale,pay);G.xp+=25;G.contract=null;checkAchievements();save();sfx("contract");maybeLevel(ol);openMarket();draw();say(`CONTRACT • +$${pay.toLocaleString()}`)}
+const achDefs=[["first","First Harvest",()=>G.harvests>=1,100],["hundred","Green Thumb",()=>G.harvests>=100,1500],["fac6","Quantum Farmer",()=>G.facility>=6,5000],["rev50","$50K Operation",()=>G.lifetimeRevenue>=50000,2500],["perfect","Perfect Specimen",()=>G.perfects>=1,1000],["genetic","Geneticist",()=>G.genetics.hybrids.length>=1,2500],["sixsig","Breakthrough Collector",()=>Object.keys(G.genetics.discoveries).filter(x=>SIGNATURES && Object.values(SIGNATURES).some(s=>s.id===x)).length>=6,15000]];
+function checkAchievements(){for(let [id,n,test,reward] of achDefs)if(!G.achievements[id]&&test()){G.achievements[id]=true;G.cash+=reward;sfx("achievement");setTimeout(()=>say(`${n} • +$${reward.toLocaleString()}`),300)}}
+function exportFarmSave(){
+ try{save();const payload={format:"emb-farms-save",version:1,exportedAt:new Date().toISOString(),data:G};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="emb-farms-save-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);say("SAVE BACKUP DOWNLOADED")}
+ catch(e){console.error(e);say("BACKUP FAILED")}
+}
+async function importFarmSave(input){
+ const file=input.files&&input.files[0];input.value="";if(!file)return;
+ if(file.size>5*1024*1024)return say("SAVE FILE TOO LARGE");
+ try{const parsed=JSON.parse(await file.text());if(!parsed||parsed.format!=="emb-farms-save"||parsed.version!==1||!parsed.data||typeof parsed.data!=="object"||Array.isArray(parsed.data))throw Error("Invalid save");
+ const d=parsed.data;
+ const validPlots=a=>Array.isArray(a)&&a.length===6&&a.every(p=>p===null||(p&&typeof p==="object"&&typeof p.id==="string"&&p.id.length<120&&Number.isFinite(p.t)&&p.t>=0));
+ if(!Number.isFinite(d.cash)||d.cash<0||!Number.isFinite(d.xp)||d.xp<0||!Number.isInteger(d.facility)||d.facility<1||d.facility>6||!validPlots(d.plots)||!d.inventory||typeof d.inventory!=="object"||Array.isArray(d.inventory))throw Error("Invalid farm data");
+ if(d.bays!==undefined&&(!Array.isArray(d.bays)||d.bays.length>5||!d.bays.every(validPlots)))throw Error("Invalid bay data");
+ if(d.unlockedBays!==undefined&&(!Number.isInteger(d.unlockedBays)||d.unlockedBays<1||d.unlockedBays>6))throw Error("Invalid bay unlocks");
+ if(d.genetics!==undefined&&(!d.genetics||typeof d.genetics!=="object"||!Array.isArray(d.genetics.hybrids||[])))throw Error("Invalid genetics data");
+ if(!confirm("Replace the farm saved in this browser? Export your current save first."))return;
+ // Retain the previous save for emergency rollback if import succeeds but the new save fails to load.
+ const previous=localStorage.getItem("embFarmsV2");
+ if(previous)localStorage.setItem("embFarmsPreviousSave",previous);
+ localStorage.setItem("embFarmsV2",JSON.stringify(d));location.reload();}catch(e){console.error(e);say("IMPORT FAILED • CHECK FILE / STORAGE")}
+}
+function openStats(){sfx("click");sheet.innerHTML=`<h2><img loading="lazy" decoding="async" class="titleIcon" src="assets/ui/farm.webp">Operation</h2><p><b>Lifetime revenue:</b> $${G.lifetimeRevenue.toLocaleString()}<br><b>Best sale:</b> $${G.bestSale.toLocaleString()}<br><b>Harvests:</b> ${G.harvests}<br><b>Perfect units:</b> ${G.perfects}<br><b>Facility bonus:</b> +${Math.round((facilityBonus()-1)*100)}% sale value</p><h3>Achievements</h3>${achDefs.map(([id,n,,r])=>`<div class="ach ${G.achievements[id]?"done":""}">${G.achievements[id]?"✓":"○"} ${n} <span class=mini>+$${r.toLocaleString()}</span></div>`).join("")}<h3><img loading="eager" decoding="async" class="uiIcon" src="assets/ui/audio.webp"> Audio</h3><div class="trackNow"><small>NOW PLAYING</small><br><b>${currentTrack==="research"?"Sterile Lab":musicKey()==="early"?"Subterranean Growth":musicKey()==="mid"?"Hydroponic Ops":"Automated Scale"}</b></div><div class="audioCtl"><b>Music</b><input type="range" min="0" max="1" step=".01" value="${G.audio.music}" oninput="setAudio('music',this.value)"><span id="musicVal">${Math.round(G.audio.music*100)}%</span></div><div class="audioCtl"><b>SFX</b><input type="range" min="0" max="1" step=".01" value="${G.audio.sfx}" oninput="setAudio('sfx',this.value)"><span id="sfxVal">${Math.round(G.audio.sfx*100)}%</span></div><button class=bigbtn onclick="toggleAudio();openStats()">${G.audio.on?"MUTE ALL":"ENABLE AUDIO"}</button><h3>Save transfer</h3><p class=mini>Export your progress before moving to a different Netlify address.</p><button class=bigbtn onclick="exportFarmSave()">EXPORT SAVE</button><button class=bigbtn onclick="document.getElementById('farmSaveFile').click()">IMPORT SAVE</button><input id="farmSaveFile" type="file" accept=".json,application/json" style="display:none" onchange="importFarmSave(this)">`;modal.classList.add("on")}
+function offline(){let mins=Math.floor((Date.now()-G.lastSeen)/60000);if(mins>=2)say(`Welcome back • ${mins}m offline`);G.lastSeen=Date.now();save()}
+function say(t){toast.textContent=t;toast.classList.add("on");clearTimeout(window.tt);window.tt=setTimeout(()=>toast.classList.remove("on"),1700)}
+setInterval(()=>{G.lastSeen=Date.now();save();draw()},1000);offline();draw();
+
+// v0.7.2 performance loader
+const PERF_UI=["assets/branding/emb_farms_icon.webp"];
+const PERF_CACHE=new Map();
+function perfLoad(src,timeout=1200){
+ if(!src)return Promise.resolve(false);
+ if(PERF_CACHE.has(src))return PERF_CACHE.get(src);
+ const p=new Promise(resolve=>{
+   let settled=false;
+   const finish=(ok)=>{if(settled)return;settled=true;clearTimeout(timer);resolve(ok)};
+   const timer=setTimeout(()=>finish(false),timeout);
+   const im=new Image();
+   im.decoding="async";
+   im.onload=()=>finish(true);
+   im.onerror=()=>finish(false);
+   im.src=src;
+ });
+ PERF_CACHE.set(src,p);return p;
+}
+function dismissBoot(){
+ const L=document.getElementById("bootLoader");
+ if(!L)return;
+ L.classList.add("done");
+ setTimeout(()=>{if(L&&L.parentNode)L.remove()},350);
+}
+async function perfBoot(){
+ const L=document.getElementById("bootLoader"),F=document.getElementById("bootFill"),P=document.getElementById("bootPct");
+ // Absolute fail-open: startup can NEVER be blocked longer than 5 seconds.
+ const hardStop=setTimeout(()=>{if(P)P.textContent="READY";if(F)F.style.width="100%";dismissBoot()},2800);
+ let fac=1;
+ try{fac=Math.max(1,Math.min(6,(G&&G.facility)||1))}catch(e){}
+ let need=[...PERF_UI,`assets/facilities/facility_${String(fac).padStart(2,"0")}.webp`];
+ try{
+   if(Array.isArray(G.plots))G.plots.forEach(p=>{
+     if(!p)return;
+     let st=Math.min(5,Math.max(1,stageOf(p))),vis=visualIdFor(p.id),names=["sprout","young","vegetative","flowering","harvest"];
+     need.push(`assets/plants/${vis}/${vis}_${String(st).padStart(2,"0")}_${names[st-1]}.webp`);
+   });
+ }catch(e){}
+ need=[...new Set(need)];
+ let d=0;
+ await Promise.allSettled(need.map(x=>perfLoad(x).then(()=>{
+   d++;let v=Math.round(d/Math.max(1,need.length)*100);
+   if(F)F.style.width=v+"%";if(P)P.textContent=v+"%";
+ })));
+ clearTimeout(hardStop);
+ if(F)F.style.width="100%";if(P)P.textContent="READY";
+ dismissBoot();
+ const idle=window.requestIdleCallback||((f)=>setTimeout(f,900));
+ idle(()=>{
+   fetch("assets/manifest.json").then(r=>r.json()).then(m=>{
+     Object.values(m.strains||{}).flatMap(x=>x.stages||[]).forEach((x,i)=>setTimeout(()=>perfLoad(x.replace(".png",".webp"),1800),i*18))
+   }).catch(()=>{});
+   if(fac<6)perfLoad(`assets/facilities/facility_${String(fac+1).padStart(2,"0")}.webp`,1800);
+ });
+}
+if(document.readyState==="complete")setTimeout(perfBoot,0);
+else window.addEventListener("load",perfBoot,{once:true});
+
+</script></div></body></html>

@@ -1,0 +1,150 @@
+{
+  "strains": {
+    "aurora_glow": {
+      "name": "Aurora Glow",
+      "stages": [
+        "assets/plants/aurora_glow/aurora_glow_01_sprout.webp",
+        "assets/plants/aurora_glow/aurora_glow_02_young.webp",
+        "assets/plants/aurora_glow/aurora_glow_03_vegetative.webp",
+        "assets/plants/aurora_glow/aurora_glow_04_flowering.webp",
+        "assets/plants/aurora_glow/aurora_glow_05_harvest.webp"
+      ]
+    },
+    "black_diamond_x": {
+      "name": "Black Diamond X",
+      "stages": [
+        "assets/plants/black_diamond_x/black_diamond_x_01_sprout.webp",
+        "assets/plants/black_diamond_x/black_diamond_x_02_young.webp",
+        "assets/plants/black_diamond_x/black_diamond_x_03_vegetative.webp",
+        "assets/plants/black_diamond_x/black_diamond_x_04_flowering.webp",
+        "assets/plants/black_diamond_x/black_diamond_x_05_harvest.webp"
+      ]
+    },
+    "blue_widow": {
+      "name": "Blue Widow",
+      "stages": [
+        "assets/plants/blue_widow/blue_widow_01_sprout.webp",
+        "assets/plants/blue_widow/blue_widow_02_young.webp",
+        "assets/plants/blue_widow/blue_widow_03_vegetative.webp",
+        "assets/plants/blue_widow/blue_widow_04_flowering.webp",
+        "assets/plants/blue_widow/blue_widow_05_harvest.webp"
+      ]
+    },
+    "cosmic_chronic": {
+      "name": "Cosmic Chronic",
+      "stages": [
+        "assets/plants/cosmic_chronic/cosmic_chronic_01_sprout.webp",
+        "assets/plants/cosmic_chronic/cosmic_chronic_02_young.webp",
+        "assets/plants/cosmic_chronic/cosmic_chronic_03_vegetative.webp",
+        "assets/plants/cosmic_chronic/cosmic_chronic_04_flowering.webp",
+        "assets/plants/cosmic_chronic/cosmic_chronic_05_harvest.webp"
+      ]
+    },
+    "frostbite_og": {
+      "name": "Frostbite OG",
+      "stages": [
+        "assets/plants/frostbite_og/frostbite_og_01_sprout.webp",
+        "assets/plants/frostbite_og/frostbite_og_02_young.webp",
+        "assets/plants/frostbite_og/frostbite_og_03_vegetative.webp",
+        "assets/plants/frostbite_og/frostbite_og_04_flowering.webp",
+        "assets/plants/frostbite_og/frostbite_og_05_harvest.webp"
+      ]
+    },
+    "galaxy_kush": {
+      "name": "Galaxy Kush",
+      "stages": [
+        "assets/plants/galaxy_kush/galaxy_kush_01_sprout.webp",
+        "assets/plants/galaxy_kush/galaxy_kush_02_young.webp",
+        "assets/plants/galaxy_kush/galaxy_kush_03_vegetative.webp",
+        "assets/plants/galaxy_kush/galaxy_kush_04_flowering.webp",
+        "assets/plants/galaxy_kush/galaxy_kush_05_harvest.webp"
+      ]
+    },
+    "green_dream": {
+      "name": "Green Dream",
+      "stages": [
+        "assets/plants/green_dream/green_dream_01_sprout.webp",
+        "assets/plants/green_dream/green_dream_02_young.webp",
+        "assets/plants/green_dream/green_dream_03_vegetative.webp",
+        "assets/plants/green_dream/green_dream_04_flowering.webp",
+        "assets/plants/green_dream/green_dream_05_harvest.webp"
+      ]
+    },
+    "lemon_haze_x": {
+      "name": "Lemon Haze X",
+      "stages": [
+        "assets/plants/lemon_haze_x/lemon_haze_x_01_sprout.webp",
+        "assets/plants/lemon_haze_x/lemon_haze_x_02_young.webp",
+        "assets/plants/lemon_haze_x/lemon_haze_x_03_vegetative.webp",
+        "assets/plants/lemon_haze_x/lemon_haze_x_04_flowering.webp",
+        "assets/plants/lemon_haze_x/lemon_haze_x_05_harvest.webp"
+      ]
+    },
+    "money_tree": {
+      "name": "Money Tree",
+      "stages": [
+        "assets/plants/money_tree/money_tree_01_sprout.webp",
+        "assets/plants/money_tree/money_tree_02_young.webp",
+        "assets/plants/money_tree/money_tree_03_vegetative.webp",
+        "assets/plants/money_tree/money_tree_04_flowering.webp",
+        "assets/plants/money_tree/money_tree_05_harvest.webp"
+      ]
+    },
+    "pineapple_turbo": {
+      "name": "Pineapple Turbo",
+      "stages": [
+        "assets/plants/pineapple_turbo/pineapple_turbo_01_sprout.webp",
+        "assets/plants/pineapple_turbo/pineapple_turbo_02_young.webp",
+        "assets/plants/pineapple_turbo/pineapple_turbo_03_vegetative.webp",
+        "assets/plants/pineapple_turbo/pineapple_turbo_04_flowering.webp",
+        "assets/plants/pineapple_turbo/pineapple_turbo_05_harvest.webp"
+      ]
+    },
+    "purple_comet": {
+      "name": "Purple Comet",
+      "stages": [
+        "assets/plants/purple_comet/purple_comet_01_sprout.webp",
+        "assets/plants/purple_comet/purple_comet_02_young.webp",
+        "assets/plants/purple_comet/purple_comet_03_vegetative.webp",
+        "assets/plants/purple_comet/purple_comet_04_flowering.webp",
+        "assets/plants/purple_comet/purple_comet_05_harvest.webp"
+      ]
+    },
+    "sour_diesel_ish": {
+      "name": "Sour Diesel-ish",
+      "stages": [
+        "assets/plants/sour_diesel_ish/sour_diesel_ish_01_sprout.webp",
+        "assets/plants/sour_diesel_ish/sour_diesel_ish_02_young.webp",
+        "assets/plants/sour_diesel_ish/sour_diesel_ish_03_vegetative.webp",
+        "assets/plants/sour_diesel_ish/sour_diesel_ish_04_flowering.webp",
+        "assets/plants/sour_diesel_ish/sour_diesel_ish_05_harvest.webp"
+      ]
+    }
+  },
+  "facilities": [
+    {
+      "level": 1,
+      "src": "assets/facilities/facility_01.webp"
+    },
+    {
+      "level": 2,
+      "src": "assets/facilities/facility_02.webp"
+    },
+    {
+      "level": 3,
+      "src": "assets/facilities/facility_03.webp"
+    },
+    {
+      "level": 4,
+      "src": "assets/facilities/facility_04.webp"
+    },
+    {
+      "level": 5,
+      "src": "assets/facilities/facility_05.webp"
+    },
+    {
+      "level": 6,
+      "src": "assets/facilities/facility_06.webp"
+    }
+  ]
+}

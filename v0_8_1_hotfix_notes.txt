@@ -1,0 +1,1 @@
+v0.8.1: transparent signature sprites; expanded Genetics Lab scene; hybrid-aware preloader; safer Parent A/B defaults and preview; v0.8 save compatible.
